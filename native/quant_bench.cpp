@@ -176,7 +176,7 @@ int main(int argc, char ** argv) {
         if (t == GGML_TYPE_F16) {
             ggml_fp32_to_fp16_row(W_f32.data(), (ggml_fp16_t *)qbuf.data(), M * K);
             written = total_bytes;
-        } else if (ggml_type_traits_cpu(t) && ggml_type_traits_cpu(t)->from_float) {
+        } else if (ggml_get_type_traits_cpu(t) && ggml_get_type_traits_cpu(t)->from_float) {
             written = ggml_quantize_chunk(t, W_f32.data(), qbuf.data(), 0, M, K, nullptr);
         } else {
             results.push_back({tname, (int)t, false, bpw, 0, 0, 0, 0, 0, 0, 0});
