@@ -122,6 +122,7 @@ The default is a no-op.
 
 ## Roadmap (v0.2+)
 
+- Build only `ggml` + `quant_bench` during `board-opt bench-quants` (skip `llama-server`/`mtmd` so cold CUDA builds finish in minutes instead of ~1 hour on low-vCPU VMs).
 - Validate on CUDA GPUs, discrete Vulkan GPUs (RDNA2/3/4, Intel Arc), Apple Silicon (Metal + non-`systemd` launcher), ROCm/HIP, and ARM SBCs.
 - Interactive `--interactive` cut selector in `board-opt run` on top of `board-opt inspect`.
 - Generalize `reap_trace.cpp` across all MoE architectures (dynamic layer/expert counts).
