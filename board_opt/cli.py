@@ -176,6 +176,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
 
     # Stage 5: Automatic GGUF optimization
     log_info("[Stage 5] Running greedy GGUF optimization...")
+    cut_scripts = [x.strip() for x in args.cut_scripts.split(",") if x.strip()] if args.cut_scripts else None
     opt_report = optimize_model(
         info=info,
         hw=hw,
@@ -187,6 +188,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
         calib_file=calib_file,
         domains=domains,
         langs=langs,
+        cut_scripts=cut_scripts,
         eval_file=args.eval_file,
         prune_experts=args.prune_experts,
         keep_intermediates=args.keep_intermediates,
@@ -286,7 +288,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     sp_run = sub.add_parser("run", help="Run full optimization pipeline")
     sp_run.add_argument("--model", required=True)
-    sp_run.add_argument("--langs", default="", help="Comma-separated languages for vocab pruning (e.g. en,pt)")
+    sp_run.add_argument("--langs", default="", help="Comma-separated languages to keep for vocab pruning (e.g. en,pt)")
+    sp_run.add_argument("--cut-scripts", default="", help="Explicit scripts to cut from vocab (e.g. cjk,cyrillic,arabic,other_unicode)")
     sp_run.add_argument("--domains", default="reasoning,python,c", help="Comma-separated eval domains")
     sp_run.add_argument("--context", type=int, default=32768)
     sp_run.add_argument("--target-vram-mb", type=int, default=None)

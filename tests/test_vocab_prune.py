@@ -62,3 +62,39 @@ def test_prune_tied_embeddings_roundtrip(tmp_path):
     assert info.vocab_size == 256
     assert len(info.tensors) == 1
     assert info.tensors[0].dims == [dim, 256]
+
+
+def test_prune_cut_scripts_selective_only_cuts_chosen_scripts(tmp_path):
+    from board_opt.gguf_io import align_up, inspect_gguf, write_kv_val, write_str
+    from board_opt.vocab_prune import B2U
+
+    tokens = [B2U[b] for b in range(256)]
+    # Add 100 CJK + 50 Cyrillic tokens; cut ONLY cjk -> Cyrillic must survive!
+    for i in range(100):
+        tokens.append("".join(B2U[b] for b in chr(0x4E00 + i).encode("utf-8")))
+    for i in range(50):
+        tokens.append("".join(B2U[b] for b in chr(0x0410 + (i % 32)).encode("utf-8")))
+    n_vocab = len(tokens)
+    src = tmp_path / "sel.gguf"
+    dst = tmp_path / "sel_pruned.gguf"
+    kvs = [
+        ("general.architecture", 8, "llama"),
+        ("tokenizer.ggml.model", 8, "gpt2"),
+        ("tokenizer.ggml.tokens", 9, (8, tokens, n_vocab)),
+    ]
+    with open(src, "wb") as f:
+        f.write(b"GGUF" + struct.pack("<IQQ", 3, 1, len(kvs)))
+        for k, vt, val in kvs:
+            write_str(f, k)
+            f.write(struct.pack("<I", vt))
+            write_kv_val(f, vt, val)
+        write_str(f, "token_embd.weight")
+        f.write(struct.pack("<IQQIQ", 2, 32, n_vocab, 0, 0))
+        pad = align_up(f.tell(), 32) - f.tell()
+        f.write(b"\x00" * pad)
+        f.write(b"\x00" * (32 * n_vocab * 4))
+
+    res = prune_vocab_gguf(str(src), str(dst), [], min_vocab_to_prune=100, cut_scripts=["cjk"])
+    assert res["skipped"] is False
+    assert res["new_vocab"] == 306  # 256 bytes + 50 cyrillic kept; 100 cjk cut!
+    assert inspect_gguf(str(dst)).vocab_size == 320  # padded to multiple of 64

@@ -71,11 +71,48 @@ def _token_allowed(tok: str, allowed_chars: set[str]) -> bool:
     return all(ch in allowed_chars for ch in decoded)
 
 
+def _classify_token_script(tok: str) -> str:
+    if tok in SINGLE_BYTE_TOKENS:
+        return "special_byte"
+    try:
+        raw = bytes(U2B[ch] for ch in tok)
+        s = raw.decode("utf-8")
+    except Exception:
+        return "partial_utf8"
+    has_cjk = has_cyr = has_arab = has_latin_ext = has_other = False
+    for ch in s:
+        cp = ord(ch)
+        if cp < 0x80:
+            continue
+        if 0x00A0 <= cp <= 0x017F:
+            has_latin_ext = True
+        elif (0x4E00 <= cp <= 0x9FFF) or (0x3040 <= cp <= 0x30FF) or (0xAC00 <= cp <= 0xD7AF):
+            has_cjk = True
+        elif 0x0400 <= cp <= 0x04FF:
+            has_cyr = True
+        elif 0x0600 <= cp <= 0x06FF:
+            has_arab = True
+        else:
+            has_other = True
+    if has_cjk:
+        return "cjk"
+    if has_cyr:
+        return "cyrillic"
+    if has_arab:
+        return "arabic"
+    if has_other:
+        return "other_unicode"
+    if has_latin_ext:
+        return "latin_ext"
+    return "ascii_en_code"
+
+
 def prune_vocab_gguf(
     src: str,
     dst: str,
     langs: list[str],
     min_vocab_to_prune: int = 64000,
+    cut_scripts: list[str] | None = None,
 ) -> dict[str, Any]:
     ver, kvs, tensors, data_offset, alignment = read_gguf_header(src)
     kv_map = {k: (vt, val) for k, vt, val in kvs}
@@ -117,13 +154,21 @@ def prune_vocab_gguf(
         merges = list(kv_map["tokenizer.ggml.merges"][1][1])
 
     allowed_chars = build_allowed_charset(langs)
+    cut_set = {s.strip().lower() for s in (cut_scripts or []) if s.strip()}
+    # Never allow cutting protected core scripts
+    cut_set -= {"special_byte", "ascii_en_code"}
     keep: set[int] = set()
     tok_to_id = {t: i for i, t in enumerate(tokens)}
 
-    # Keep special/control tokens, byte-level tokens, and language-allowed tokens
+    # Keep special/control tokens, byte-level tokens, and either non-cut scripts or language-allowed tokens
     for i, t in enumerate(tokens):
         is_special = token_types is not None and token_types[i] != 1
-        if is_special or _token_allowed(t, allowed_chars):
+        if is_special or t in SINGLE_BYTE_TOKENS:
+            keep.add(i)
+        elif cut_set:
+            if _classify_token_script(t) not in cut_set:
+                keep.add(i)
+        elif _token_allowed(t, allowed_chars):
             keep.add(i)
 
     # Also keep any token referenced by tokenizer.ggml.*_token_id

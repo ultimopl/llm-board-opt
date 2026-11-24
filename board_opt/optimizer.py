@@ -124,6 +124,7 @@ def optimize_model(
     calib_file: str = "",
     domains: list[str] | None = None,
     langs: list[str] | None = None,
+    cut_scripts: list[str] | None = None,
     eval_file: str | None = None,
     prune_experts: int | None = None,
     keep_intermediates: bool = False,
@@ -211,10 +212,10 @@ def optimize_model(
         edit_gguf(current_gguf, cand, tensor_requant=high_bit, ggml_conv_bin=conv_bin)
         _try_step("requant_attn_and_output", cand)
 
-    # Step 2: Language/domain vocabulary pruning
-    if langs_list:
+    # Step 2: Language/domain vocabulary pruning (by --langs allowlist or explicit --cut-scripts)
+    if langs_list or cut_scripts:
         cand = os.path.join(work_dir, "step2_vocab_pruned.gguf")
-        res = prune_vocab_gguf(current_gguf, cand, langs_list)
+        res = prune_vocab_gguf(current_gguf, cand, langs_list, cut_scripts=cut_scripts)
         if not res["skipped"]:
             _try_step("vocab_prune", cand)
         else:
