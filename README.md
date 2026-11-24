@@ -122,7 +122,7 @@ The default is a no-op.
 
 ## Roadmap (v0.2+)
 
-- Build only `ggml` + `quant_bench` during `board-opt bench-quants` (skip `llama-server`/`mtmd` so cold CUDA builds finish in minutes instead of ~1 hour on low-vCPU VMs).
+- **CMake native helpers + minimal `bench-quants` build (fixes CUDA linking):** Build `quant_bench`, `ggml_conv`, and `reap_trace` via CMake (`target_link_libraries(... PRIVATE ggml)`) instead of manual `g++ -l...` flags. This fixes CUDA static linking (missing CUDA device-link / `-lcublasLt` observed on Tesla T4), handles Vulkan/CUDA/ROCm/Metal/CPU uniformly, and lets `board-opt bench-quants` build only `ggml` + `quant_bench` in minutes instead of compiling all of `llama-server`/`mtmd`.
 - Validate on CUDA GPUs, discrete Vulkan GPUs (RDNA2/3/4, Intel Arc), Apple Silicon (Metal + non-`systemd` launcher), ROCm/HIP, and ARM SBCs.
 - Interactive `--interactive` cut selector in `board-opt run` on top of `board-opt inspect`.
 - Generalize `reap_trace.cpp` across all MoE architectures (dynamic layer/expert counts).
