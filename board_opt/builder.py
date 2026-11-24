@@ -43,6 +43,9 @@ def cmake_args_for_hardware(hw: HardwareProfile, src_dir: str, build_dir: str) -
         "-DLLAMA_BUILD_EXAMPLES=OFF",
         "-DLLAMA_BUILD_SERVER=ON",
         "-DLLAMA_BUILD_TOOLS=ON",
+        "-DLLAMA_BUILD_APP=OFF",
+        "-DLLAMA_BUILD_UI=OFF",
+        "-DLLAMA_USE_PREBUILT_UI=OFF",
     ]
     if shutil.which("ninja"):
         args.extend(["-G", "Ninja"])
