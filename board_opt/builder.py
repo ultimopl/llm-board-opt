@@ -17,6 +17,7 @@ class ToolchainPaths:
     llama_server: str
     ggml_conv: str | None = None
     reap_trace: str | None = None
+    quant_bench: str | None = None
 
 
 def hardware_fingerprint(hw: HardwareProfile) -> str:
@@ -143,12 +144,15 @@ def ensure_native_toolchain(
     native_dir = os.path.join(pkg_root, "native")
     ggml_conv = os.path.join(bin_dir, "ggml_conv")
     reap_trace = os.path.join(bin_dir, "reap_trace")
+    quant_bench = os.path.join(bin_dir, "quant_bench")
 
     if os.path.isdir(src_dir):
         if rebuild or not os.path.isfile(ggml_conv):
             ggml_conv = _build_native_helper(os.path.join(native_dir, "ggml_conv.cpp"), ggml_conv, src_dir, build_dir, link_llama=False)
         if rebuild or not os.path.isfile(reap_trace):
             reap_trace = _build_native_helper(os.path.join(native_dir, "reap_trace.cpp"), reap_trace, src_dir, build_dir, link_llama=True)
+        if rebuild or not os.path.isfile(quant_bench):
+            quant_bench = _build_native_helper(os.path.join(native_dir, "quant_bench.cpp"), quant_bench, src_dir, build_dir, link_llama=False)
 
     return ToolchainPaths(
         llama_bench=expected["llama_bench"],
@@ -157,4 +161,5 @@ def ensure_native_toolchain(
         llama_server=expected["llama_server"],
         ggml_conv=ggml_conv if ggml_conv and os.path.isfile(ggml_conv) else None,
         reap_trace=reap_trace if reap_trace and os.path.isfile(reap_trace) else None,
+        quant_bench=quant_bench if quant_bench and os.path.isfile(quant_bench) else None,
     )

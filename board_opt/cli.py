@@ -20,6 +20,7 @@ from board_opt.log import log_info, set_verbosity
 from board_opt.models import EvalMetrics, GateConfig, HardwareProfile
 from board_opt.optimizer import optimize_model
 from board_opt.probe import probe_hardware
+from board_opt.quant_bench import QuantBenchEntry, format_quant_table, run_quant_bench
 from board_opt.tuner import TunedRuntimeConfig, tune_runtime
 
 
@@ -95,6 +96,17 @@ def _cmd_run(args: argparse.Namespace) -> int:
     # Stage 2: Native board compilation
     log_info("[Stage 2] Ensuring board-native llama.cpp toolchain...")
     tc = ensure_native_toolchain(hw, llama_src=args.llama_src, rebuild=args.rebuild)
+
+    # Stage 2b: Empirical per-quant board benchmark (speed, GB/s, conversion speed, RMSE/CosSim)
+    quant_table: dict[str, QuantBenchEntry] | None = None
+    qb_data = store.load("quant_bench")
+    if qb_data and not args.no_resume:
+        quant_table = {k: QuantBenchEntry.from_dict(v) for k, v in qb_data.items()}
+    elif tc.quant_bench:
+        log_info("[Stage 2b] Benchmarking all GGML quant formats on this board (speed, GB/s, conv, RMSE/CosSim)...")
+        quant_table = run_quant_bench(tc.quant_bench)
+        store.save("quant_bench", {k: v.to_dict() for k, v in quant_table.items()})
+        log_info("\n" + format_quant_table(quant_table))
 
     langs = [x.strip() for x in args.langs.split(",") if x.strip()] if args.langs else []
     domains = [x.strip() for x in args.domains.split(",") if x.strip()] if args.domains else ["reasoning"]
@@ -172,6 +184,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
         eval_file=args.eval_file,
         prune_experts=args.prune_experts,
         keep_intermediates=args.keep_intermediates,
+        quant_table=quant_table,
     )
     store.save("optimize", opt_report.to_dict())
 
@@ -195,6 +208,21 @@ def _cmd_run(args: argparse.Namespace) -> int:
     }
     store.save("final", final)
     print(json.dumps(final, indent=2))
+    return 0
+
+
+def _cmd_bench_quants(args: argparse.Namespace) -> int:
+    ensure_single_gpu_job(managed_unit=args.unit_name)
+    hw = probe_hardware(vram_reserve_mb=args.vram_reserve_mb, backend_override=args.backend)
+    tc = ensure_native_toolchain(hw, llama_src=args.llama_src, rebuild=args.rebuild)
+    if not tc.quant_bench:
+        raise RuntimeError("quant_bench native helper failed to build (check g++ and llama.cpp build dir)")
+    table = run_quant_bench(tc.quant_bench, m=args.m, k=args.k)
+    if args.json:
+        print(json.dumps({k: v.to_dict() for k, v in table.items()}, indent=2))
+    else:
+        print(f"Board: {hw.gpu_name} ({hw.backend}, march={hw.cpu_march}) | Matrix: {args.m}x{args.k}")
+        print(format_quant_table(table))
     return 0
 
 
@@ -254,6 +282,17 @@ def build_parser() -> argparse.ArgumentParser:
     sp_run.add_argument("-v", "--verbose", action="store_true", help="Print per-candidate and per-task progress to stderr")
     sp_run.add_argument("-q", "--quiet", action="store_true", help="Suppress progress logs (JSON stdout only)")
     sp_run.set_defaults(func=_cmd_run)
+
+    sp_bq = sub.add_parser("bench-quants", help="Benchmark all GGML quant formats on this board (speed, GB/s, conv, loss)")
+    sp_bq.add_argument("--m", type=int, default=4096)
+    sp_bq.add_argument("--k", type=int, default=4096)
+    sp_bq.add_argument("--llama-src", default=None)
+    sp_bq.add_argument("--rebuild", action="store_true")
+    sp_bq.add_argument("--vram-reserve-mb", type=int, default=None)
+    sp_bq.add_argument("--backend", choices=["vulkan", "rocm", "cuda", "cpu"], default=None)
+    sp_bq.add_argument("--unit-name", default=None)
+    sp_bq.add_argument("--json", action="store_true")
+    sp_bq.set_defaults(func=_cmd_bench_quants)
 
     sp_serve = sub.add_parser("serve", help="Launch previously generated serve.sh via systemd-run")
     sp_serve.add_argument("--work-dir", required=True)

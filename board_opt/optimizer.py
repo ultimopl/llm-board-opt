@@ -14,6 +14,7 @@ from board_opt.gate import evaluate_candidate
 from board_opt.gguf_io import NAME_TO_TYPE, edit_gguf, inspect_gguf
 from board_opt.log import log_info, log_verbose
 from board_opt.models import EvalMetrics, GateConfig, GGUFInfo, HardwareProfile, TensorInfo
+from board_opt.quant_bench import QuantBenchEntry, pick_best_target_format
 from board_opt.recovery import NoOpRecovery, RecoveryHook
 from board_opt.tuner import TunedRuntimeConfig
 from board_opt.vocab_prune import prune_vocab_gguf
@@ -29,10 +30,15 @@ class OptimizationReport:
         return asdict(self)
 
 
-def plan_requant_targets(tensors: list[TensorInfo], hw: HardwareProfile) -> dict[str, int]:
-    """Select non-native or oversized 2D/3D tensors to convert to the board's native sweet spot."""
-    target_name = hw.preferred_formats[0] if hw.preferred_formats else "Q4_0"
-    target_id = NAME_TO_TYPE.get(target_name, 2)
+def plan_requant_targets(
+    tensors: list[TensorInfo],
+    hw: HardwareProfile,
+    quant_table: dict[str, QuantBenchEntry] | None = None,
+    vram_constrained: bool = False,
+) -> dict[str, int]:
+    """Select non-native or oversized 2D/3D tensors using empirical board quant benchmarks when available."""
+    fallback_name = hw.preferred_formats[0] if hw.preferred_formats else "Q4_0"
+    fallback_id = NAME_TO_TYPE.get(fallback_name, 2)
     targets: dict[str, int] = {}
 
     for t in tensors:
@@ -41,18 +47,28 @@ def plan_requant_targets(tensors: list[TensorInfo], hw: HardwareProfile) -> dict
             continue
         if any(skip in t.name for skip in ("norm", "bias", "ffn_gate_inp", "ssm_", "exp_probs")):
             continue
-        # Non-native FP4/NVFP4 on boards without fp4 support
+
+        # Empirical mode: use actual board measurements (speed, bandwidth, RMSE/CosSim)
+        if quant_table:
+            is_non_native = (t.ttype in (39, 40) and not hw.fp4) or (t.ttype == 0 and "loop" in t.name and "ctrl" in t.name)
+            is_attn_or_out = ("attn_" in t.name or t.name == "output.weight")
+            if is_non_native or (is_attn_or_out and t.ttype in (0, 1, 8, 13, 14)):
+                min_cos = 0.995 if is_attn_or_out else 0.990
+                best = pick_best_target_format(quant_table, t.ttype, min_cos_sim=min_cos, vram_constrained=vram_constrained)
+                if best is not None:
+                    targets[t.name] = best.type_id
+            continue
+
+        # Heuristic fallback when quant_bench hasn't been run yet
         if t.ttype in (39, 40) and not hw.fp4:
-            targets[t.name] = target_id
+            targets[t.name] = fallback_id
             continue
-        # Oversized F32 loop controllers only (not arbitrary F32 gates)
         if t.ttype == 0 and "loop" in t.name and "ctrl" in t.name:
-            targets[t.name] = target_id
+            targets[t.name] = fallback_id
             continue
-        # High-bit attention / output projections on bandwidth-bound boards
         is_attn_or_out = ("attn_" in t.name or t.name == "output.weight")
         if is_attn_or_out and t.ttype in (8, 13, 14):  # Q8_0, Q5_K, Q6_K
-            targets[t.name] = target_id
+            targets[t.name] = fallback_id
     return targets
 
 
@@ -111,6 +127,7 @@ def optimize_model(
     eval_file: str | None = None,
     prune_experts: int | None = None,
     keep_intermediates: bool = False,
+    quant_table: dict[str, QuantBenchEntry] | None = None,
     recovery_hook: RecoveryHook | None = None,
     step_eval_fn: Callable[[str], EvalMetrics] | None = None,
 ) -> OptimizationReport:
@@ -171,7 +188,7 @@ def optimize_model(
     kv_fix: dict[str, tuple[int, Any]] = {}
     if info.top_k == 0 and info.vocab_size > 50000:
         kv_fix["general.sampling.top_k"] = (4, 40)
-    all_targets = plan_requant_targets(info.tensors, hw)
+    all_targets = plan_requant_targets(info.tensors, hw, quant_table=quant_table, vram_constrained=vram_constrained)
     t_types = {t.name: t.ttype for t in info.tensors}
     conv_bin = tc.ggml_conv if tc else None
     # Filter out conversions requiring ggml_conv if binary is absent
