@@ -16,6 +16,12 @@ from board_opt.deploy import (
 from board_opt.eval_runner import build_calibration_file, run_full_eval
 from board_opt.gate import StageStore
 from board_opt.gguf_io import inspect_gguf
+from board_opt.inspector import (
+    format_inspection_report,
+    summarize_layer_quants,
+    summarize_moe_experts,
+    summarize_vocab_scripts,
+)
 from board_opt.log import log_info, set_verbosity
 from board_opt.models import EvalMetrics, GateConfig, HardwareProfile
 from board_opt.optimizer import optimize_model
@@ -211,6 +217,29 @@ def _cmd_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_inspect(args: argparse.Namespace) -> int:
+    hw = probe_hardware(vram_reserve_mb=args.vram_reserve_mb, backend_override=args.backend)
+    info = inspect_gguf(args.model)
+    plan = solve_budget(info, hw, requested_ctx=args.context, target_vram_mb=args.target_vram_mb)
+
+    quant_table = None
+    if args.quant_bench_json and os.path.isfile(args.quant_bench_json):
+        with open(args.quant_bench_json, encoding="utf-8") as f:
+            raw = json.load(f)
+        quant_table = {k: QuantBenchEntry.from_dict(v) for k, v in raw.items()}
+
+    layer_rows = summarize_layer_quants(info, hw, quant_table=quant_table, vram_constrained=plan.vram_constrained)
+    moe = summarize_moe_experts(info, vram_constrained=plan.vram_constrained)
+    vocab = summarize_vocab_scripts(args.model)
+
+    if args.json:
+        print(json.dumps({"layers": layer_rows, "moe": moe, "vocab": vocab}, indent=2))
+    else:
+        print(f"Model: {os.path.basename(args.model)} ({info.arch}, {plan.weights_mb} MiB) | Board: {hw.gpu_name} ({hw.usable_vram_mb} MiB usable)")
+        print(format_inspection_report(layer_rows, moe, vocab))
+    return 0
+
+
 def _cmd_bench_quants(args: argparse.Namespace) -> int:
     ensure_single_gpu_job(managed_unit=args.unit_name)
     hw = probe_hardware(vram_reserve_mb=args.vram_reserve_mb, backend_override=args.backend)
@@ -282,6 +311,16 @@ def build_parser() -> argparse.ArgumentParser:
     sp_run.add_argument("-v", "--verbose", action="store_true", help="Print per-candidate and per-task progress to stderr")
     sp_run.add_argument("-q", "--quiet", action="store_true", help="Suppress progress logs (JSON stdout only)")
     sp_run.set_defaults(func=_cmd_run)
+
+    sp_insp = sub.add_parser("inspect", help="Show layer quants, prunable MoE experts, vocab scripts, and expected gains/losses")
+    sp_insp.add_argument("--model", required=True)
+    sp_insp.add_argument("--context", type=int, default=32768)
+    sp_insp.add_argument("--target-vram-mb", type=int, default=None)
+    sp_insp.add_argument("--vram-reserve-mb", type=int, default=None)
+    sp_insp.add_argument("--backend", choices=["vulkan", "rocm", "cuda", "cpu"], default=None)
+    sp_insp.add_argument("--quant-bench-json", default=None, help="Optional cached quant_bench.json for exact board speed/loss estimates")
+    sp_insp.add_argument("--json", action="store_true")
+    sp_insp.set_defaults(func=_cmd_inspect)
 
     sp_bq = sub.add_parser("bench-quants", help="Benchmark all GGML quant formats on this board (speed, GB/s, conv, loss)")
     sp_bq.add_argument("--m", type=int, default=4096)
