@@ -1,0 +1,597 @@
+[
+  {
+    "id": "lcb6_abc387_b",
+    "title": "9x9 Sum",
+    "difficulty": "easy",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "Among the 81 integers that appear in the 9-by-9 multiplication table, find the sum of those that are not X.\n\nThere is a grid of size 9 by 9.\r\nEach cell of the grid contains an integer: the cell at the i-th row from the top and the j-th column from the left contains i \\times j.\r\nYou are given an integer X. Among the 81 integers written in this grid, find the sum of those that are not X. If the same value appears in multiple cells, add it for each cell.\n\nInput\n\nThe input is given from Standard Input in the following format:\nX\n\nOutput\n\nPrint the sum of the integers that are not X among the 81 integers written in the grid.\n\nConstraints\n\n\n- X is an integer between 1 and 81, inclusive.\n\nSample Input 1\n\n1\n\nSample Output 1\n\n2024\r\n\nThe only cell with 1 in the grid is the cell at the 1st row from the top and 1st column from the left. Summing all integers that are not 1 yields 2024.\n\nSample Input 2\n\n11\n\nSample Output 2\n\n2025\r\n\nThere is no cell containing 11 in the grid. Thus, the answer is 2025, the sum of all 81 integers.\n\nSample Input 3\n\n24\n\nSample Output 3\n\n1929",
+    "public_test_cases": [
+      {
+        "input": "1",
+        "output": "2024",
+        "testtype": "stdin"
+      },
+      {
+        "input": "11",
+        "output": "2025",
+        "testtype": "stdin"
+      },
+      {
+        "input": "24",
+        "output": "1929",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc387_f",
+    "title": "Count Arrays",
+    "difficulty": "hard",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "You are given positive integers N, M, and a sequence A = (A_1, A_2, \\dots, A_N) of length N, each element being an integer between 1 and N, inclusive.\nFind the number, modulo 998244353, of sequences x = (x_1, x_2, \\dots, x_N) of length N, each element being an integer between 1 and M, inclusive, that satisfy the following condition:\n\n- x_i \\leq x_{A_i} for every i (1 \\leq i \\leq N).\n\nInput\n\nThe input is given from Standard Input in the following format:\nN M\r\nA_1 A_2 \\dots A_N\n\nOutput\n\nPrint the answer.\n\nConstraints\n\n\n- 1 \\leq N, M \\leq 2025\n- 1 \\leq A_i \\leq N\n- All input values are integers.\n\nSample Input 1\n\n3 3\r\n2 1 1\n\nSample Output 1\n\n6\r\n\nThe sequences x=(1,1,1),(2,2,1),(2,2,2),(3,3,1),(3,3,2),(3,3,3) satisfy the condition.\n\nSample Input 2\n\n4 9\r\n1 1 1 1\n\nSample Output 2\n\n2025\n\nSample Input 3\n\n10 5\r\n9 4 5 5 4 2 1 5 7 2\n\nSample Output 3\n\n10010",
+    "public_test_cases": [
+      {
+        "input": "3 3\n2 1 1",
+        "output": "6",
+        "testtype": "stdin"
+      },
+      {
+        "input": "4 9\n1 1 1 1",
+        "output": "2025",
+        "testtype": "stdin"
+      },
+      {
+        "input": "10 5\n9 4 5 5 4 2 1 5 7 2",
+        "output": "10010",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc387_a",
+    "title": "Happy New Year 2025",
+    "difficulty": "easy",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "You are given two positive integers A and B.\nOutput the square of A + B.\n\nInput\n\nThe input is given from Standard Input in the following format:\nA B\n\nOutput\n\nPrint the answer.\n\nConstraints\n\n\n- 1 \\leq A,B \\leq 2025\n- All input values are integers.\n\nSample Input 1\n\n20 25\n\nSample Output 1\n\n2025\r\n\n(20+25)^2=2025.\n\nSample Input 2\n\n30 25\n\nSample Output 2\n\n3025\n\nSample Input 3\n\n45 11\n\nSample Output 3\n\n3136\n\nSample Input 4\n\n2025 1111\n\nSample Output 4\n\n9834496",
+    "public_test_cases": [
+      {
+        "input": "20 25",
+        "output": "2025",
+        "testtype": "stdin"
+      },
+      {
+        "input": "30 25",
+        "output": "3025",
+        "testtype": "stdin"
+      },
+      {
+        "input": "45 11",
+        "output": "3136",
+        "testtype": "stdin"
+      },
+      {
+        "input": "2025 1111",
+        "output": "9834496",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc387_c",
+    "title": "Snake Numbers",
+    "difficulty": "medium",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "A positive integer not less than 10 whose top digit (the most significant digit) in decimal representation is strictly larger than every other digit in that number is called a Snake number.\nFor example, 31 and 201 are Snake numbers, but 35 and 202 are not.\nFind how many Snake numbers exist between L and R, inclusive.\n\nInput\n\nThe input is given from Standard Input in the following format:\nL R\n\nOutput\n\nPrint the answer.\n\nConstraints\n\n\n- 10 \\leq L \\leq R \\leq 10^{18}\n- All input values are integers.\n\nSample Input 1\n\n97 210\n\nSample Output 1\n\n6\n\nThe Snake numbers between 97 and 210, inclusive, are 97, 98, 100, 200, 201, and 210: there are six.\n\nSample Input 2\n\n1000 9999\n\nSample Output 2\n\n2025\n\nSample Input 3\n\n252509054433933519 760713016476190692\n\nSample Output 3\n\n221852052834757",
+    "public_test_cases": [
+      {
+        "input": "97 210",
+        "output": "6",
+        "testtype": "stdin"
+      },
+      {
+        "input": "1000 9999",
+        "output": "2025",
+        "testtype": "stdin"
+      },
+      {
+        "input": "252509054433933519 760713016476190692",
+        "output": "221852052834757",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc388_d",
+    "title": "Coming of Age Celebration",
+    "difficulty": "medium",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "On a certain planet, there are N aliens, all of whom are minors.\nThe i-th alien currently has A_i stones, and will become an adult exactly i years later.\nWhen someone becomes an adult on this planet, every adult who has at least one stone gives exactly one stone as a congratulatory gift to the alien who has just become an adult.\nFind how many stones each alien will have after N years.\nAssume that no new aliens will be born in the future.\n\nInput\n\nThe input is given from Standard Input in the following format:\nN\r\nA_1 A_2 \\ldots A_N\n\nOutput\n\nLet B_i be the number of stones owned by the i-th alien after N years. Print B_1, B_2, \\ldots, B_N in this order, separated by spaces.\n\nConstraints\n\n\n- 1 \\leq N \\leq 5 \\times 10^5\n- 0 \\leq A_i \\leq 5 \\times 10^5\n- All input values are integers.\n\nSample Input 1\n\n4\r\n5 0 9 3\n\nSample Output 1\n\n2 0 10 5\r\n\nLet C_i be the number of stones that the i-th alien has at a given time.\nInitially, (C_1, C_2, C_3, C_4) = (5, 0, 9, 3).\nAfter 1 year, (C_1, C_2, C_3, C_4) = (5, 0, 9, 3).\nAfter 2 years, (C_1, C_2, C_3, C_4) = (4, 1, 9, 3).\nAfter 3 years, (C_1, C_2, C_3, C_4) = (3, 0, 11, 3).\nAfter 4 years, (C_1, C_2, C_3, C_4) = (2, 0, 10, 5).\n\nSample Input 2\n\n5\r\n4 6 7 2 5\n\nSample Output 2\n\n0 4 7 4 9\n\nSample Input 3\n\n10\r\n2 9 1 2 0 4 6 7 1 5\n\nSample Output 3\n\n0 2 0 0 0 4 7 10 4 10",
+    "public_test_cases": [
+      {
+        "input": "4\n5 0 9 3",
+        "output": "2 0 10 5",
+        "testtype": "stdin"
+      },
+      {
+        "input": "5\n4 6 7 2 5",
+        "output": "0 4 7 4 9",
+        "testtype": "stdin"
+      },
+      {
+        "input": "10\n2 9 1 2 0 4 6 7 1 5",
+        "output": "0 2 0 0 0 4 7 10 4 10",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc388_b",
+    "title": "Heavy Snake",
+    "difficulty": "easy",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "There are N snakes.\nInitially, the thickness of the i-th snake is T_i, and its length is L_i.\nThe weight of a snake is defined as the product of its thickness and length.\nFor each integer k satisfying 1 \\leq k \\leq D, find the weight of the heaviest snake when every snake's length has increased by k.\n\nInput\n\nThe input is given from Standard Input in the following format:\nN D\r\nT_1 L_1\r\nT_2 L_2\r\n\\vdots\r\nT_N L_N\n\nOutput\n\nPrint D lines. The k-th line should contain the weight of the heaviest snake when every snake's length has increased by k.\n\nConstraints\n\n\n- 1 \\leq N, D \\leq 100\n- 1 \\leq T_i, L_i \\leq 100\n- All input values are integers.\n\nSample Input 1\n\n4 3\r\n3 3\r\n5 1\r\n2 4\r\n1 10\n\nSample Output 1\n\n12\r\n15\r\n20\r\n\nWhen every snake\u2019s length has increased by 1, the snakes' weights become 12, 10, 10, 11, so print 12 on the first line.\nWhen every snake\u2019s length has increased by 2, the snakes' weights become 15, 15, 12, 12, so print 15 on the second line.\nWhen every snake\u2019s length has increased by 3, the snakes' weights become 18, 20, 14, 13, so print 20 on the third line.\n\nSample Input 2\n\n1 4\r\n100 100\n\nSample Output 2\n\n10100\r\n10200\r\n10300\r\n10400",
+    "public_test_cases": [
+      {
+        "input": "4 3\n3 3\n5 1\n2 4\n1 10",
+        "output": "12\n15\n20",
+        "testtype": "stdin"
+      },
+      {
+        "input": "1 4\n100 100",
+        "output": "10100\n10200\n10300\n10400",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc388_g",
+    "title": "Simultaneous Kagamimochi 2",
+    "difficulty": "hard",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "There are N mochi (rice cakes), arranged in ascending order of size.\r\nThe size of the i-th mochi (1\\leq i\\leq N) is A_i.\nGiven two mochi A and B, with sizes a and b respectively, you can make one kagamimochi (a stacked rice cake) by placing mochi A on top of mochi B if and only if a is at most half of b.\nYou are given Q integer pairs. Let (L_i, R_i) be the i-th pair (1\\leq i\\leq Q), and solve the following problem for each i:\n\nUsing only the R_i - L_i + 1 mochi from the L_i-th to the R_i-th, how many kagamimochi can you make simultaneously?  \nMore precisely, find the maximum non-negative integer K such that:\n\n- Out of the R_i - L_i + 1 mochi from the L_i-th to the R_i-th, choose 2K mochi and form K pairs. For each pair, place one mochi on top of the other, to make K kagamimochi.\n\nInput\n\nThe input is given from Standard Input in the following format:\nN\r\nA_1 A_2 \\dotsc A_N\r\nQ\r\nL_1 R_1\r\nL_2 R_2\r\n\\vdots\r\nL_Q R_Q\n\nOutput\n\nPrint Q lines. The i-th line (1\\leq i\\leq Q) should contain the answer to the i-th query.\n\nConstraints\n\n\n- 2 \\leq N \\leq 2 \\times 10^5\n- 1 \\leq A_i \\leq 10^9 \\ (1 \\leq i \\leq N)\n- A_i \\leq A_{i+1} \\ (1 \\leq i < N)\n- 1 \\leq Q \\leq 2 \\times 10^5\n- 1 \\leq L_i < R_i \\leq N \\ (1 \\leq i \\leq Q)\n- All input values are integers.\n\nSample Input 1\n\n11\r\n1 1 2 3 4 4 7 10 11 12 20\r\n5\r\n2 5\r\n3 8\r\n7 11\r\n1 2\r\n1 11\n\nSample Output 1\n\n2\r\n3\r\n1\r\n0\r\n5\r\n\nThe answers to each query are as follows. One possible way to make the kagamimochi is given for each query.\n\n- The mochi sizes are (1, 2, 3, 4). You can make the two kagamimochi (1,3) and (2,4).\n- The mochi sizes are (2, 3, 4, 4, 7, 10). You can make the three kagamimochi (2,4), (3,7), and (4,10).\n- The mochi sizes are (7, 10, 11, 12, 20). You can make one kagamimochi (10,20).\n- The mochi sizes are (1, 1). You cannot make any kagamimochi.\n- The mochi sizes are (1, 1, 2, 3, 4, 4, 7, 10, 11, 12, 20). You can make five kagamimochi (1,2), (1,3), (4,10), (4,11), and (7,20).\n\nHence, print 2, 3, 1, 0, 5 in this order.\n\nSample Input 2\n\n24\r\n127 148 170 174 258 311 331 414 416 436 517 523 532 587 591 638 660 748 760 776 837 857 972 984\r\n15\r\n7 11\r\n8 9\r\n8 13\r\n12 15\r\n9 23\r\n1 17\r\n8 12\r\n1 5\r\n6 17\r\n3 7\r\n12 19\r\n13 18\r\n7 22\r\n1 12\r\n14 15\n\nSample Output 2\n\n0\r\n0\r\n0\r\n0\r\n2\r\n6\r\n0\r\n1\r\n1\r\n0\r\n0\r\n0\r\n3\r\n5\r\n0",
+    "public_test_cases": [
+      {
+        "input": "11\n1 1 2 3 4 4 7 10 11 12 20\n5\n2 5\n3 8\n7 11\n1 2\n1 11",
+        "output": "2\n3\n1\n0\n5",
+        "testtype": "stdin"
+      },
+      {
+        "input": "24\n127 148 170 174 258 311 331 414 416 436 517 523 532 587 591 638 660 748 760 776 837 857 972 984\n15\n7 11\n8 9\n8 13\n12 15\n9 23\n1 17\n8 12\n1 5\n6 17\n3 7\n12 19\n13 18\n7 22\n1 12\n14 15",
+        "output": "0\n0\n0\n0\n2\n6\n0\n1\n1\n0\n0\n0\n3\n5\n0",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc388_c",
+    "title": "Various Kagamimochi",
+    "difficulty": "medium",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "There are N mochi (rice cakes) arranged in ascending order of size.\r\nThe size of the i-th mochi (1 \\leq i \\leq N) is A_i.\nGiven two mochi A and B, with sizes a and b respectively, you can make one kagamimochi (a stacked rice cake) by placing mochi A on top of mochi B if and only if a is at most half of b.\nYou choose two mochi out of the N mochi, and place one on top of the other to form one kagamimochi.\nFind how many different kinds of kagamimochi can be made.\nTwo kagamimochi are distinguished if at least one of the mochi is different, even if the sizes of the mochi are the same.\n\nInput\n\nThe input is given from Standard Input in the following format:\nN\r\nA_1 A_2 \\cdots A_N\n\nOutput\n\nPrint the number of different kinds of kagamimochi that can be made.\n\nConstraints\n\n\n- 2 \\leq N \\leq 5 \\times 10^5\n- 1 \\leq A_i \\leq 10^9 \\ (1 \\leq i \\leq N)\n- A_i \\leq A_{i+1} \\ (1 \\leq i < N)\n- All input values are integers.\n\nSample Input 1\n\n6\r\n2 3 4 4 7 10\n\nSample Output 1\n\n8\r\n\nThe sizes of the given mochi are as follows:\n\nIn this case, you can make the following eight kinds of kagamimochi:\n\nNote that there are two kinds of kagamimochi where a mochi of size 4 is topped by a mochi of size 2, and two kinds where a mochi of size 10 is topped by a mochi of size 4.\n\nSample Input 2\n\n3\r\n387 388 389\n\nSample Output 2\n\n0\r\n\nIt is possible that you cannot make any kagamimochi.\n\nSample Input 3\n\n32\r\n1 2 4 5 8 10 12 16 19 25 33 40 50 64 87 101 149 175 202 211 278 314 355 405 412 420 442 481 512 582 600 641\n\nSample Output 3\n\n388",
+    "public_test_cases": [
+      {
+        "input": "6\n2 3 4 4 7 10",
+        "output": "8",
+        "testtype": "stdin"
+      },
+      {
+        "input": "3\n387 388 389",
+        "output": "0",
+        "testtype": "stdin"
+      },
+      {
+        "input": "32\n1 2 4 5 8 10 12 16 19 25 33 40 50 64 87 101 149 175 202 211 278 314 355 405 412 420 442 481 512 582 600 641",
+        "output": "388",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc388_a",
+    "title": "?UPC",
+    "difficulty": "easy",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "You are given a string S. Here, the first character of S is an uppercase English letter, and the second and subsequent characters are lowercase English letters.\nPrint the string formed by concatenating the first character of S and UPC in this order.\n\nInput\n\nThe input is given from Standard Input in the following format:\nS\n\nOutput\n\nPrint the string formed by concatenating the first character of S and UPC in this order.\n\nConstraints\n\n\n- S is a string of length between 1 and 100, inclusive.\n- The first character of S is an uppercase English letter.\n- The second and subsequent characters of S are lowercase English letters.\n\nSample Input 1\n\nKyoto\n\nSample Output 1\n\nKUPC\r\n\nThe first character of Kyoto is K, so concatenate K and UPC, and print KUPC.\n\nSample Input 2\n\nTohoku\n\nSample Output 2\n\nTUPC",
+    "public_test_cases": [
+      {
+        "input": "Kyoto",
+        "output": "KUPC",
+        "testtype": "stdin"
+      },
+      {
+        "input": "Tohoku",
+        "output": "TUPC",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc388_f",
+    "title": "Dangerous Sugoroku",
+    "difficulty": "hard",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "There are N squares arranged in a row, labeled 1, 2, \\ldots, N from left to right.\nYou are given M pairs of integers (L_1, R_1), \\ldots, (L_M, R_M).\nA square j is defined to be bad if and only if there exists some i such that L_i \\leq j \\leq R_i.\nDetermine whether you can move from square 1 to square N by repeatedly performing the following action:\n\n- Let your current square be x. Choose an integer i that satisfies all of the following conditions, and move to square x + i.\n- A \\leq i \\leq B\n- x + i \\leq N\n- Square x + i is not bad.\n\nInput\n\nThe input is given from Standard Input in the following format:\nN M A B\r\nL_1 R_1\r\nL_2 R_2\r\n\\vdots\r\nL_M R_M\n\nOutput\n\nIf it is possible to reach square N by repeating the action described in the problem statement, print Yes. Otherwise, print No.\n\nConstraints\n\n\n- 2 \\leq N \\leq 10^{12}\n- 0 \\leq M \\leq 2 \\times 10^4\n- 1 \\leq A \\leq B \\leq 20\n- 1 < L_i \\leq R_i < N \\ (1 \\leq i \\leq M)\n- R_i < L_{i+1} \\ (1 \\leq i \\leq M - 1)\n- All input values are integers.\n\nSample Input 1\n\n24 2 3 5\r\n7 8\r\n17 20\n\nSample Output 1\n\nYes\r\n\nYou can move to square N in this way: 1 \\to 6 \\to 9 \\to 12 \\to 16 \\to 21 \\to 24.\n\nSample Input 2\n\n30 1 5 8\r\n4 24\n\nSample Output 2\n\nNo\n\nSample Input 3\n\n100 4 10 11\r\n16 18\r\n39 42\r\n50 55\r\n93 99\n\nSample Output 3\n\nYes",
+    "public_test_cases": [
+      {
+        "input": "24 2 3 5\n7 8\n17 20",
+        "output": "Yes",
+        "testtype": "stdin"
+      },
+      {
+        "input": "30 1 5 8\n4 24",
+        "output": "No",
+        "testtype": "stdin"
+      },
+      {
+        "input": "100 4 10 11\n16 18\n39 42\n50 55\n93 99",
+        "output": "Yes",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc388_e",
+    "title": "Simultaneous Kagamimochi",
+    "difficulty": "hard",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "There are N mochi (rice cakes), arranged in ascending order of size.\r\nThe size of the i-th mochi (1\\leq i\\leq N) is A_i.\nGiven two mochi A and B, with sizes a and b respectively, you can make one kagamimochi (a stacked rice cake) by placing mochi A on top of mochi B if and only if a is at most half of b.\nFind how many kagamimochi can be made simultaneously.\nMore precisely, find the maximum non-negative integer K for which the following is possible:\n\n- From the N mochi, choose 2K of them to form K pairs. For each pair, place one mochi on top of the other, to make K kagamimochi.\n\nInput\n\nThe input is given from Standard Input in the following format:\nN\r\nA_1 A_2 \\dotsc A_N\n\nOutput\n\nPrint the maximum K such that K kagamimochi can be made simultaneously.\n\nConstraints\n\n\n- 2 \\leq N \\leq 5 \\times 10^5\n- 1 \\leq A_i \\leq 10^9 \\ (1 \\leq i \\leq N)\n- A_i \\leq A_{i+1} \\ (1 \\leq i < N)\n- All input values are integers.\n\nSample Input 1\n\n6\r\n2 3 4 4 7 10\n\nSample Output 1\n\n3\r\n\nThe sizes of the given mochi are as follows:\n\nIn this case, you can make the following three kagamimochi simultaneously:\n\nIt is not possible to make four or more kagamimochi from six mochi, so print 3.\n\nSample Input 2\n\n3\r\n387 388 389\n\nSample Output 2\n\n0\r\n\nIt is possible that you cannot make any kagamimochi.\n\nSample Input 3\n\n24\r\n307 321 330 339 349 392 422 430 477 481 488 537 541 571 575 602 614 660 669 678 712 723 785 792\n\nSample Output 3\n\n6",
+    "public_test_cases": [
+      {
+        "input": "6\n2 3 4 4 7 10",
+        "output": "3",
+        "testtype": "stdin"
+      },
+      {
+        "input": "3\n387 388 389",
+        "output": "0",
+        "testtype": "stdin"
+      },
+      {
+        "input": "24\n307 321 330 339 349 392 422 430 477 481 488 537 541 571 575 602 614 660 669 678 712 723 785 792",
+        "output": "6",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc389_d",
+    "title": "Squares in Circle",
+    "difficulty": "medium",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "On the two-dimensional coordinate plane, there is an infinite tiling of 1 \\times 1 squares.\nConsider drawing a circle of radius R centered at the center of one of these squares. How many of these squares are completely contained inside the circle?\nMore precisely, find the number of integer pairs (i,j) such that all four points (i+0.5,j+0.5), (i+0.5,j-0.5), (i-0.5,j+0.5), and (i-0.5,j-0.5) are at a distance of at most R from the origin.\n\nInput\n\nThe input is given from Standard Input in the following format:\nR\n\nOutput\n\nPrint the answer.\n\nConstraints\n\n\n- 1 \\leq R \\leq 10^{6}\n- All input values are integers.\n\nSample Input 1\n\n2\n\nSample Output 1\n\n5\r\n\nThere are a total of five squares completely contained in the circle: the square whose center matches the circle\u2019s center, plus the four squares adjacent to it.\n\nSample Input 2\n\n4\n\nSample Output 2\n\n37\n\nSample Input 3\n\n26\n\nSample Output 3\n\n2025",
+    "public_test_cases": [
+      {
+        "input": "2",
+        "output": "5",
+        "testtype": "stdin"
+      },
+      {
+        "input": "4",
+        "output": "37",
+        "testtype": "stdin"
+      },
+      {
+        "input": "26",
+        "output": "2025",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc389_b",
+    "title": "tcaF",
+    "difficulty": "easy",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "You are given an integer X not less than 2.\nFind the positive integer N such that N! = X.\nHere, N! denotes the factorial of N, and it is guaranteed that there is exactly one such N.\n\nInput\n\nThe input is given from Standard Input in the following format:\nX\n\nOutput\n\nPrint the answer.\n\nConstraints\n\n\n- 2 \\leq X \\leq 3 \\times 10^{18}\n- There is exactly one positive integer N such that N!=X.\n- All input values are integers.\n\nSample Input 1\n\n6\n\nSample Output 1\n\n3\r\n\nFrom 3!=3\\times2\\times1=6, print 3.\n\nSample Input 2\n\n2432902008176640000\n\nSample Output 2\n\n20\r\n\nFrom 20!=2432902008176640000, print 20.",
+    "public_test_cases": [
+      {
+        "input": "6",
+        "output": "3",
+        "testtype": "stdin"
+      },
+      {
+        "input": "2432902008176640000",
+        "output": "20",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc389_a",
+    "title": "9x9",
+    "difficulty": "easy",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "You are given a 3-character string S, where the first character is a digit, the second character is the character x, and the third character is a digit.\nFind the product of the two numbers in S.\n\nInput\n\nThe input is given from Standard Input in the following format:\nS\n\nOutput\n\nPrint the answer as an integer.\n\nConstraints\n\n\n- S is a 3-character string where the first character is an integer between 1 and 9, inclusive, the second character is the character x, and the third character is an integer between 1 and 9, inclusive.\n\nSample Input 1\n\n3x8\n\nSample Output 1\n\n24\n\nFrom 3 \\times 8 = 24, print 24.\n\nSample Input 2\n\n9x9\n\nSample Output 2\n\n81\n\nFrom 9 \\times 9 = 81, print 81.",
+    "public_test_cases": [
+      {
+        "input": "3x8",
+        "output": "24",
+        "testtype": "stdin"
+      },
+      {
+        "input": "9x9",
+        "output": "81",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc389_g",
+    "title": "Odd Even Graph",
+    "difficulty": "hard",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "You are given a positive even integer N and a prime number P.\nFor M = N-1, \\ldots, \\frac{N(N-1)}{2}, solve the following problem.\nHow many undirected connected simple graphs with N vertices labeled from 1 to N and M edges satisfy this: the number of vertices whose shortest distance from vertex 1 is even is equal to the number of vertices whose shortest distance from vertex 1 is odd? Find this number modulo P.\n\nInput\n\nThe input is given from Standard Input in the following format:\nN P\n\nOutput\n\nFor M = N-1, \\ldots, \\frac{N(N-1)}{2}, output the answers in order, separated by spaces, on a single line.\n\nConstraints\n\n\n- 2 \\leq N \\leq 30\n- 10^8 \\leq P \\leq 10^9\n- N is even.\n- P is prime.\n- All input values are integers.\n\nSample Input 1\n\n4 998244353\n\nSample Output 1\n\n12 9 3 0\r\n\nWith four vertices and three edges, there are 12 simple connected undirected graphs satisfying the condition.\nWith four vertices and four edges, there are 9 such graphs.\nWith four vertices and five edges, there are 3 such graphs.\nWith four vertices and six edges, there are 0 such graphs.\n\nSample Input 2\n\n6 924844033\n\nSample Output 2\n\n810 2100 3060 3030 2230 1210 450 100 10 0 0\n\nSample Input 3\n\n10 433416647\n\nSample Output 3\n\n49218750 419111280 321937732 107111441 372416570 351559278 312484809 334285827 317777667 211471846 58741385 422156135 323887465 54923551 121645733 94354149 346849276 72744827 385773306 163421544 351691775 59915863 430096957 166653801 346330874 185052506 245426328 47501118 7422030 899640 79380 4536 126 0 0 0 0\r\n\nRemember to find the number of such graphs modulo P.",
+    "public_test_cases": [
+      {
+        "input": "4 998244353",
+        "output": "12 9 3 0",
+        "testtype": "stdin"
+      },
+      {
+        "input": "6 924844033",
+        "output": "810 2100 3060 3030 2230 1210 450 100 10 0 0",
+        "testtype": "stdin"
+      },
+      {
+        "input": "10 433416647",
+        "output": "49218750 419111280 321937732 107111441 372416570 351559278 312484809 334285827 317777667 211471846 58741385 422156135 323887465 54923551 121645733 94354149 346849276 72744827 385773306 163421544 351691775 59915863 430096957 166653801 346330874 185052506 245426328 47501118 7422030 899640 79380 4536 126 0 0 0 0",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc389_f",
+    "title": "Rated Range",
+    "difficulty": "hard",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "Takahashi plans to participate in N AtCoder contests.\nIn the i-th contest (1 \\leq i \\leq N), if his rating is between L_i and R_i (inclusive), his rating increases by 1.\nYou are given Q queries in the following format:\n\n- An integer X is given. Assuming that Takahashi's initial rating is X, determine his rating after participating in all N contests.\n\nInput\n\nThe input is given from Standard Input in the following format:\nN\r\nL_1 R_1\r\nL_2 R_2\r\n\\vdots\r\nL_N R_N\r\nQ\r\n\\text{query}_1\r\n\\text{query}_2\r\n\\vdots\r\n\\text{query}_Q\r\n\nHere, \\text{query}_i is the i-th query in the form:\nX\n\nOutput\n\nPrint Q lines. The i-th line should contain the answer to the i-th query.\n\nConstraints\n\n\n- 1 \\leq N \\leq 2 \\times 10^5\n- 1 \\leq L_i \\leq R_i \\leq 5 \\times 10^5 (1 \\leq i \\leq N)\n- 1 \\leq Q \\leq 3 \\times 10^5\n- For each query, 1 \\leq X \\leq 5 \\times 10^5.\n- All input values are integers.\n\nSample Input 1\n\n5\r\n1 5\r\n1 3\r\n3 6\r\n2 4\r\n4 7\r\n3\r\n3\r\n2\r\n5\n\nSample Output 1\n\n6\r\n6\r\n8\r\n\nFor the 1st query, the rating changes as follows:\n\n- In the 1st contest, the rating is between 1 and 5, so it increases by 1, becoming 4.  \n- In the 2nd contest, the rating is not between 1 and 3, so it remains 4.  \n- In the 3rd contest, the rating is between 3 and 6, so it increases by 1, becoming 5.  \n- In the 4th contest, the rating is not between 2 and 4, so it remains 5.  \n- In the 5th contest, the rating is between 4 and 7, so it increases by 1, becoming 6.\n\nFor the 2nd query, the rating increases in the 1st, 2nd, 3rd, and 5th contests, ending at 6.\nFor the 3rd query, the rating increases in the 1st, 3rd, and 5th contests, ending at 8.\n\nSample Input 2\n\n10\r\n1 1999\r\n1 1999\r\n1200 2399\r\n1 1999\r\n1 1999\r\n1 1999\r\n2000 500000\r\n1 1999\r\n1 1999\r\n1600 2799\r\n7\r\n1\r\n1995\r\n2000\r\n2399\r\n500000\r\n2799\r\n1000\n\nSample Output 2\n\n8\r\n2002\r\n2003\r\n2402\r\n500001\r\n2800\r\n1007\n\nSample Input 3\n\n15\r\n260522 414575\r\n436426 479445\r\n148772 190081\r\n190629 433447\r\n47202 203497\r\n394325 407775\r\n304784 463982\r\n302156 468417\r\n131932 235902\r\n78537 395728\r\n223857 330739\r\n286918 329211\r\n39679 238506\r\n63340 186568\r\n160016 361868\r\n10\r\n287940\r\n296263\r\n224593\r\n101449\r\n336991\r\n390310\r\n323355\r\n177068\r\n11431\r\n8580\n\nSample Output 3\n\n287946\r\n296269\r\n224599\r\n101453\r\n336997\r\n390315\r\n323363\r\n177075\r\n11431\r\n8580",
+    "public_test_cases": [
+      {
+        "input": "5\n1 5\n1 3\n3 6\n2 4\n4 7\n3\n3\n2\n5",
+        "output": "6\n6\n8",
+        "testtype": "stdin"
+      },
+      {
+        "input": "10\n1 1999\n1 1999\n1200 2399\n1 1999\n1 1999\n1 1999\n2000 500000\n1 1999\n1 1999\n1600 2799\n7\n1\n1995\n2000\n2399\n500000\n2799\n1000",
+        "output": "8\n2002\n2003\n2402\n500001\n2800\n1007",
+        "testtype": "stdin"
+      },
+      {
+        "input": "15\n260522 414575\n436426 479445\n148772 190081\n190629 433447\n47202 203497\n394325 407775\n304784 463982\n302156 468417\n131932 235902\n78537 395728\n223857 330739\n286918 329211\n39679 238506\n63340 186568\n160016 361868\n10\n287940\n296263\n224593\n101449\n336991\n390310\n323355\n177068\n11431\n8580",
+        "output": "287946\n296269\n224599\n101453\n336997\n390315\n323363\n177075\n11431\n8580",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc389_e",
+    "title": "Square Price",
+    "difficulty": "hard",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "There are N types of products, each having 10^{100} units in stock.\nYou can buy any non-negative number of units of each product. To buy k units of the i-th product, it costs k^2 P_i yen.\nIf your total purchase cost is at most M yen, what is the maximum number of units you can buy in total?\n\nInput\n\nThe input is given from Standard Input in the following format:\nN M\r\nP_1 \\ldots P_N\n\nOutput\n\nPrint the answer.\n\nConstraints\n\n\n- 1 \\leq N \\leq 2 \\times 10^{5}\n- 1 \\leq M \\leq 10^{18}\n- 1 \\leq P_i \\leq 2 \\times 10^{9}\n- All input values are integers.\n\nSample Input 1\n\n3 9\r\n4 1 9\n\nSample Output 1\n\n3\r\n\nIf you buy one unit of the 1st product and two units of the 2nd product, the total purchase cost is 1^2 \\times 4 + 2^2 \\times 1 = 8. It is impossible to buy four or more units in total with a total cost of at most 9 yen, so the answer is 3.\n\nSample Input 2\n\n10 1000\r\n2 15 6 5 12 1 7 9 17 2\n\nSample Output 2\n\n53",
+    "public_test_cases": [
+      {
+        "input": "3 9\n4 1 9",
+        "output": "3",
+        "testtype": "stdin"
+      },
+      {
+        "input": "10 1000\n2 15 6 5 12 1 7 9 17 2",
+        "output": "53",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc390_e",
+    "title": "Vitamin Balance",
+    "difficulty": "hard",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "There are N foods, each containing exactly one of vitamins 1, 2, and 3.\nSpecifically, eating the i-th food gives you A_i units of vitamin V_i, and C_i calories.\nTakahashi can choose any subset of these N foods as long as the total calorie consumption does not exceed X.\nFind the maximum possible value of this: the minimum intake among vitamins 1, 2, and 3.\n\nInput\n\nThe input is given from Standard Input in the following format:\nN X\nV_1 A_1 C_1\nV_2 A_2 C_2\n\\vdots\nV_N A_N C_N\n\nOutput\n\nPrint the maximum possible value of \"the minimum intake among vitamins 1, 2, and 3\" when the total calories consumed is at most X.\n\nConstraints\n\n\n- 1 \\leq N \\leq 5000\n- 1 \\leq X \\leq 5000\n- 1 \\leq V_i \\leq 3\n- 1 \\leq A_i \\leq 2 \\times 10^5\n- 1 \\leq C_i \\leq X\n- All input values are integers.\n\nSample Input 1\n\n5 25\n1 8 5\n2 3 5\n2 7 10\n3 2 5\n3 3 10\n\nSample Output 1\n\n3\n\nEach food provides the following if eaten:\n\n- 1st food: 8 units of vitamin 1, and 5 calories\n- 2nd food: 3 units of vitamin 2, and 5 calories\n- 3rd food: 7 units of vitamin 2, and 10 calories\n- 4th food: 2 units of vitamin 3, and 5 calories\n- 5th food: 3 units of vitamin 3, and 10 calories\n\nEating the 1st, 2nd, 4th, and 5th foods gives 8 units of vitamin 1, 3 units of vitamin 2, 5 units of vitamin 3, and 25 calories.\nIn this case, the minimum among the three vitamin intakes is 3 (vitamin 2).\nIt is impossible to get 4 or more units of each vitamin without exceeding 25 calories, so the answer is 3.\n\nSample Input 2\n\n2 5000\n1 200000 1\n2 200000 1\n\nSample Output 2\n\n0",
+    "public_test_cases": [
+      {
+        "input": "5 25\n1 8 5\n2 3 5\n2 7 10\n3 2 5\n3 3 10",
+        "output": "3",
+        "testtype": "stdin"
+      },
+      {
+        "input": "2 5000\n1 200000 1\n2 200000 1",
+        "output": "0",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc390_g",
+    "title": "Permutation Concatenation",
+    "difficulty": "hard",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "You are given a positive integer N.\nFor an integer sequence A=(A_1,A_2,\\ldots,A_N) of length N. Let f(A) be the integer obtained as follows:\n\n- Let S be an empty string.\n- For i=1,2,\\ldots,N in this order:\n- Let T be the decimal representation of A_i without leading zeros.\n- Append T to the end of S.\n\n\n- Interpret S as a decimal integer, and let that be f(A).\n\nFor example, if A=(1,20,34), then f(A)=12034.\nThere are N! permutations P of (1,2,\\ldots,N). Find the sum, modulo 998244353, of f(P) over all such permutations P.\n\nInput\n\nThe input is given from Standard Input in the following format:\nN\n\nOutput\n\nPrint the sum, modulo 998244353, of f(P) over all permutations P of (1,2,\\ldots,N).\n\nConstraints\n\n\n- 1 \\le N \\le 2 \\times 10^5\n- All input values are integers.\n\nSample Input 1\n\n3\n\nSample Output 1\n\n1332\r\n\nThe six permutations of (1,2,3) are (1,2,3), (1,3,2), (2,1,3), (2,3,1), (3,1,2), (3,2,1). Their f(P) values are 123,132,213,231,312,321. Therefore, print 123+132+213+231+312+321 = 1332.\n\nSample Input 2\n\n390\n\nSample Output 2\n\n727611652\r\n\nPrint the sum modulo 998244353.\n\nSample Input 3\n\n79223\n\nSample Output 3\n\n184895744",
+    "public_test_cases": [
+      {
+        "input": "3",
+        "output": "1332",
+        "testtype": "stdin"
+      },
+      {
+        "input": "390",
+        "output": "727611652",
+        "testtype": "stdin"
+      },
+      {
+        "input": "79223",
+        "output": "184895744",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc390_a",
+    "title": "12435",
+    "difficulty": "easy",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "You are given an integer sequence A=(A_1,A_2,A_3,A_4,A_5) obtained by permuting (1,2,3,4,5).\nDetermine whether A can be sorted in ascending order by performing exactly one operation of swapping two adjacent elements in A.\n\nInput\n\nThe input is given from Standard Input in the following format:\nA_1 A_2 A_3 A_4 A_5\n\nOutput\n\nIf A can be sorted in ascending order by exactly one operation, print Yes; otherwise, print No.\n\nConstraints\n\n\n- A is an integer sequence of length 5 obtained by permuting (1,2,3,4,5).\n\nSample Input 1\n\n1 2 4 3 5\n\nSample Output 1\n\nYes\r\n\nBy swapping A_3 and A_4, A becomes (1,2,3,4,5), so it can be sorted in ascending order. Therefore, print Yes.\n\nSample Input 2\n\n5 3 2 4 1\n\nSample Output 2\n\nNo\r\n\nNo matter what operation is performed, it is impossible to sort A in ascending order.\n\nSample Input 3\n\n1 2 3 4 5\n\nSample Output 3\n\nNo\r\n\nYou must perform exactly one operation.\n\nSample Input 4\n\n2 1 3 4 5\n\nSample Output 4\n\nYes",
+    "public_test_cases": [
+      {
+        "input": "1 2 4 3 5",
+        "output": "Yes",
+        "testtype": "stdin"
+      },
+      {
+        "input": "5 3 2 4 1",
+        "output": "No",
+        "testtype": "stdin"
+      },
+      {
+        "input": "1 2 3 4 5",
+        "output": "No",
+        "testtype": "stdin"
+      },
+      {
+        "input": "2 1 3 4 5",
+        "output": "Yes",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc390_b",
+    "title": "Geometric Sequence",
+    "difficulty": "easy",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "You are given a length-N sequence A=(A_1,A_2,\\ldots,A_N) of positive integers.\nDetermine whether A is a geometric progression.\n\nInput\n\nThe input is given from Standard Input in the following format:\nN\r\nA_1 A_2 \\ldots A_N\n\nOutput\n\nIf A is a geometric progression, print Yes; otherwise, print No.\n\nConstraints\n\n\n- 2 \\leq N \\leq 100\n- 1 \\leq A_i \\leq 10^9\n- All input values are integers.\n\nSample Input 1\n\n5\r\n3 6 12 24 48\n\nSample Output 1\n\nYes\r\n\nA=(3,6,12,24,48).\nA is a geometric progression with first term 3, common ratio 2, and five terms.\r\nTherefore, print Yes.\n\nSample Input 2\n\n3\r\n1 2 3\n\nSample Output 2\n\nNo\r\n\nA=(1,2,3).\r\nSince A_1 : A_2 = 1 : 2 \\neq 2 : 3 = A_2 : A_3, A is not a geometric progression.\r\nTherefore, print No.\n\nSample Input 3\n\n2\r\n10 8\n\nSample Output 3\n\nYes\r\n\nA is a geometric progression with first term 10, common ratio 0.8, and two terms.\r\nTherefore, print Yes.",
+    "public_test_cases": [
+      {
+        "input": "5\n3 6 12 24 48",
+        "output": "Yes",
+        "testtype": "stdin"
+      },
+      {
+        "input": "3\n1 2 3",
+        "output": "No",
+        "testtype": "stdin"
+      },
+      {
+        "input": "2\n10 8",
+        "output": "Yes",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc390_d",
+    "title": "Stone XOR",
+    "difficulty": "medium",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "There are N bags, labeled bag 1, bag 2, \\ldots, bag N.\r\nBag i (1 \\leq i \\leq N) contains A_i stones.\nTakahashi can perform the following operation any number of times, possibly zero:\n\nChoose two bags A and B, and move all stones from bag A into bag B.\n\nFind the number of different possible values for the following after repeating the operation.\n\n- B_1 \\oplus B_2 \\oplus \\cdots \\oplus B_N, where B_i is the final number of stones in bag i.\r\nHere, \\oplus denotes bitwise XOR.\n\n\nAbout bitwise XOR\r\nFor non-negative integers a and b, the bitwise XOR a \\oplus b is defined as follows:\r\n\r\n\r\nIn the binary representation of a \\oplus b, the digit in the 2^k place (k \\ge 0) is 1 if and only if exactly one of the digits in the 2^k place of a and b is 1; otherwise, it is 0.\r\n\r\n\r\nFor example, 3 \\oplus 5 = 6 (in binary, 011 \\oplus 101 = 110).\r\nIn general, for k non-negative integers x_1, x_2, \\ldots, x_k, their bitwise XOR x_1 \\oplus x_2 \\oplus \\cdots \\oplus x_k is defined as (\\cdots((x_1 \\oplus x_2) \\oplus x_3) \\oplus \\cdots) \\oplus x_k, which does not depend on the order of x_1, x_2, \\ldots, x_k.\r\n\nIt can be proved that under the constraints of this problem, the number of possible values is finite.\n\nInput\n\nThe input is given from Standard Input in the following format:\nN\r\nA_1 A_2 \\ldots A_N\n\nOutput\n\nPrint the number of different possible values for B_1 \\oplus B_2 \\oplus \\cdots \\oplus B_N after repeating the operation.\n\nConstraints\n\n\n- 2 \\leq N \\leq 12\n- 1 \\leq A_i \\leq 10^{17}\n- All input values are integers.\n\nSample Input 1\n\n3\r\n2 5 7\n\nSample Output 1\n\n3\r\n\nFor example, if Takahashi chooses bags 1 and 3 for the operation, then the numbers of stones in bags 1, 2, 3 become 0, 5, 9.\r\nIf he stops at this point, the XOR is 0 \\oplus 5 \\oplus 9 = 12.\nThe other possible XOR values after repeating the operation are 0 and 14.\r\nTherefore, the possible values are 0, 12, 14; there are three values, so the output is 3.\n\nSample Input 2\n\n2\r\n100000000000000000 100000000000000000\n\nSample Output 2\n\n2\n\nSample Input 3\n\n6\r\n71 74 45 34 31 60\n\nSample Output 3\n\n84",
+    "public_test_cases": [
+      {
+        "input": "3\n2 5 7",
+        "output": "3",
+        "testtype": "stdin"
+      },
+      {
+        "input": "2\n100000000000000000 100000000000000000",
+        "output": "2",
+        "testtype": "stdin"
+      },
+      {
+        "input": "6\n71 74 45 34 31 60",
+        "output": "84",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc390_f",
+    "title": "Double Sum 3",
+    "difficulty": "hard",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "You are given an integer sequence A=(A_1,A_2,\\ldots,A_N) of length N.\nFor each integer pair (L,R) with 1 \\le L \\le R \\le N, define f(L,R) as follows:\n\n- Start with an empty blackboard. Write the R-L+1 integers A_L, A_{L+1}, \\ldots, A_R on the blackboard in order.\n- Repeat the following operation until all integers on the blackboard are erased:\n- Choose integers l, r with l \\le r such that every integer from l through r appears at least once on the blackboard. Then, erase all integers from l through r that are on the blackboard.\n\n\n- Let f(L,R) be the minimum number of such operations needed to erase all the integers from the blackboard.\n\nFind \\displaystyle \\sum_{L=1}^N \\sum_{R=L}^N f(L,R).\n\nInput\n\nThe input is given from Standard Input in the following format:\nN\nA_1 A_2 \\ldots A_N\n\nOutput\n\nPrint the answer.\n\nConstraints\n\n\n- 1 \\le N \\le 3 \\times 10^5\n- 1 \\le A_i \\le N\n- All input values are integers.\n\nSample Input 1\n\n4\n1 3 1 4\n\nSample Output 1\n\n16\n\nFor example, in the case of (L,R)=(1,4):\n\n- The blackboard has 1,3,1,4.\n- Choose (l,r)=(1,1) and erase all occurrences of 1. The blackboard now has 3,4.\n- Choose (l,r)=(3,4) and erase all occurrences of 3 and 4. The blackboard becomes empty.\n- It cannot be done in fewer than two operations, so f(1,4) = 2.\n\nSimilarly, you can find f(2,4)=2, f(1,1)=1, etc.\n\\displaystyle \\sum_{L=1}^N \\sum_{R=L}^N f(L,R) = 16, so print 16.\n\nSample Input 2\n\n5\n3 1 4 2 4\n\nSample Output 2\n\n23\n\nSample Input 3\n\n10\n5 1 10 9 2 5 6 9 1 6\n\nSample Output 3\n\n129",
+    "public_test_cases": [
+      {
+        "input": "4\n1 3 1 4",
+        "output": "16",
+        "testtype": "stdin"
+      },
+      {
+        "input": "5\n3 1 4 2 4",
+        "output": "23",
+        "testtype": "stdin"
+      },
+      {
+        "input": "10\n5 1 10 9 2 5 6 9 1 6",
+        "output": "129",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc390_c",
+    "title": "Paint to make a rectangle",
+    "difficulty": "medium",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "You are given a grid of H rows and W columns.\r\nLet (i,j) denote the cell at row i (1 \\leq i \\leq H) from the top and column j (1 \\leq j \\leq W) from the left.\r\nThe state of the grid is represented by H strings S_1, S_2, \\ldots, S_H, each of length W, as follows:\n\n- If the j-th character of S_i is #, cell (i,j) is painted black.\n- If the j-th character of S_i is ., cell (i,j) is painted white.\n- If the j-th character of S_i is ?, cell (i,j) is not yet painted.\n\nTakahashi wants to paint each not-yet-painted cell white or black so that all the black cells form a rectangle.\r\nMore precisely, he wants there to exist a quadruple of integers (a,b,c,d) (1 \\leq a \\leq b \\leq H, 1 \\leq c \\leq d \\leq W) such that:\n\nFor each cell (i,j) (1 \\leq i \\leq H, 1 \\leq j \\leq W),\r\nif a \\leq i \\leq b and c \\leq j \\leq d, the cell is black;\r\notherwise, the cell is white.\n\nDetermine whether this is possible.\n\nInput\n\nThe input is given from Standard Input in the following format:\nH W\r\nS_1\r\nS_2\r\n\\vdots\r\nS_H\n\nOutput\n\nIf it is possible to paint all the not-yet-painted cells so that the black cells form a rectangle, print Yes; otherwise, print No.\n\nConstraints\n\n\n- 1 \\leq H, W \\leq 1000\n- H and W are integers.\n- Each S_i is a string of length W consisting of #, ., ?.\n- There is at least one cell that is already painted black.\n\nSample Input 1\n\n3 5\r\n.#?#.\r\n.?#?.\r\n?...?\n\nSample Output 1\n\nYes\r\n\nThe grid is in the following state. ? indicates a cell that are not yet painted.\n\nBy painting cells (1,3), (2,2), and (2,4) black and cells (3,1) and (3,5) white, the black cells can form a rectangle as follows:\n\nTherefore, print Yes.\n\nSample Input 2\n\n3 3\r\n?##\r\n#.#\r\n##?\n\nSample Output 2\n\nNo\r\n\nTo form a rectangle with all black cells, you would need to paint cell (2,2) black, but it is already painted white.\r\nTherefore, it is impossible to make all black cells form a rectangle, so print No.\n\nSample Input 3\n\n1 1\r\n#\n\nSample Output 3\n\nYes",
+    "public_test_cases": [
+      {
+        "input": "3 5\n.#?#.\n.?#?.\n?...?",
+        "output": "Yes",
+        "testtype": "stdin"
+      },
+      {
+        "input": "3 3\n?##\n#.#\n##?",
+        "output": "No",
+        "testtype": "stdin"
+      },
+      {
+        "input": "1 1\n#",
+        "output": "Yes",
+        "testtype": "stdin"
+      }
+    ]
+  },
+  {
+    "id": "lcb6_abc391_d",
+    "title": "Gravity",
+    "difficulty": "medium",
+    "platform": "atcoder",
+    "starter_code": "",
+    "question_content": "There is a grid with 10^9 rows and W columns. The cell at the x-th column from the left and the y-th row from the bottom is denoted by (x,y).\nThere are N blocks. Each block is a 1 \\times 1 square, and block i-th (1 \\leq i \\leq N) is located at cell (X_i,Y_i) at time 0.\nAt times t=1,2,\\dots,10^{100}, the blocks are moved according to the following rules:\n\n- If the entire bottom row is filled with blocks, then all blocks in the bottom row are removed.\n- For each remaining block, in order from bottom to top, perform the following:\n- If the block is in the bottom row, or if there is a block in the cell immediately below it, do nothing.\n- Otherwise, move the block one cell downward.\n\n\n\nYou are given Q queries. For the j-th query (1 \\leq j \\leq Q), answer whether block A_j exists at time T_j+0.5.\n\nInput\n\nThe input is given from Standard Input in the following format:\nN W\nX_1 Y_1\nX_2 Y_2\n\\vdots\nX_N Y_N\nQ\nT_1 A_1\nT_2 A_2\n\\vdots\nT_Q A_Q\n\nOutput\n\nPrint Q lines. The i-th line should contain Yes if block A_i exists at time T_i+0.5, and No otherwise.\n\nConstraints\n\n\n- 1 \\leq N \\leq 2 \\times 10^5\n- 1 \\leq W \\leq N\n- 1 \\leq X_i \\leq W\n- 1 \\leq Y_i \\leq 10^9\n- (X_i,Y_i) \\neq (X_j,Y_j) if i \\neq j.\n- 1 \\leq Q \\leq 2 \\times 10^5\n- 1 \\leq T_j \\leq 10^9\n- 1 \\leq A_j \\leq N\n- All input values are integers.\n\nSample Input 1\n\n5 3\n1 1\n1 2\n2 2\n3 2\n2 3\n6\n1 1\n1 2\n2 3\n2 5\n3 4\n3 5\n\nSample Output 1\n\nYes\nYes\nNo\nYes\nNo\nYes\n\nThe positions of the blocks change as follows: (\"\u6642\u523b\" means \"time.\")\n\n\n- Query 1: At time 1.5, block 1 exists, so the answer is Yes.\n- Query 2: At time 1.5, block 2 exists, so the answer is Yes.\n- Query 3: Block 3 disappears at time 2, so it does not exist at time 2.5, and the answer is No.\n\nSample Input 2\n\n3 2\n1 1\n2 1\n1 2\n4\n1 1\n1 2\n1 3\n2 3\n\nSample Output 2\n\nNo\nNo\nYes\nYes",
+    "public_test_cases": [
+      {
+        "input": "5 3\n1 1\n1 2\n2 2\n3 2\n2 3\n6\n1 1\n1 2\n2 3\n2 5\n3 4\n3 5",
+        "output": "Yes\nYes\nNo\nYes\nNo\nYes",
+        "testtype": "stdin"
+      },
+      {
+        "input": "3 2\n1 1\n2 1\n1 2\n4\n1 1\n1 2\n1 3\n2 3",
+        "output": "No\nNo\nYes\nYes",
+        "testtype": "stdin"
+      }
+    ]
+  }
+]
