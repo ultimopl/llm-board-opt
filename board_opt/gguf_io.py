@@ -148,29 +148,52 @@ def read_gguf_header(path: str) -> tuple[int, list[tuple[str, int, Any]], list[d
     return ver, kvs, tensors, data_offset, alignment
 
 
+def _unpack_scalar_array(val: Any) -> list[int | float | bool] | None:
+    if not isinstance(val, tuple) or len(val) != 3:
+        return None
+    etype, data, cnt = val
+    if etype not in SCALAR_FMT or not isinstance(data, (bytes, bytearray)):
+        return None
+    code = SCALAR_FMT[etype][1]
+    return list(struct.unpack(f"<{cnt}{code}", data))
+
+
 def inspect_gguf(path: str) -> GGUFInfo:
     _, kvs, raw_tensors, _, _ = read_gguf_header(path)
     kv_dict: dict[str, Any] = {}
+    array_kvs: dict[str, Any] = {}
     vocab_size = 0
     for k, vt, val in kvs:
         if k == "tokenizer.ggml.tokens" and vt == 9:
             vocab_size = int(val[2])
-        elif vt != 9:
+        elif vt == 9:
+            array_kvs[k] = val
+        else:
             kv_dict[k] = val
 
     arch = str(kv_dict.get("general.architecture", "unknown"))
     n_layer = int(kv_dict.get(f"{arch}.block_count", 0))
     n_head = int(kv_dict.get(f"{arch}.attention.head_count", 1))
-    n_head_kv_raw = kv_dict.get(f"{arch}.attention.head_count_kv", n_head)
-    n_head_kv = int(n_head_kv_raw) if isinstance(n_head_kv_raw, (int, float)) else int(n_head)
+    n_head_kv_raw = kv_dict.get(f"{arch}.attention.head_count_kv")
+    if n_head_kv_raw is None and f"{arch}.attention.head_count_kv" in array_kvs:
+        arr = _unpack_scalar_array(array_kvs[f"{arch}.attention.head_count_kv"])
+        n_head_kv = int(max(arr)) if arr else int(n_head)
+    else:
+        n_head_kv = int(n_head_kv_raw) if isinstance(n_head_kv_raw, (int, float)) else int(n_head)
+
     n_embd = int(kv_dict.get(f"{arch}.embedding_length", 0))
     default_head = (n_embd // n_head) if n_head > 0 else 128
     head_k = int(kv_dict.get(f"{arch}.attention.key_length", default_head))
     head_v = int(kv_dict.get(f"{arch}.attention.value_length", head_k))
 
-    # Account for hybrid/recurrent models (e.g. qwen35 full_attention_interval)
+    # Account for hybrid/recurrent models (e.g. qwen35 full_attention_interval or gemma4 sliding_window_pattern)
     interval = int(kv_dict.get(f"{arch}.full_attention_interval", 0))
-    if interval > 1 and n_layer > 0:
+    swa_arr = _unpack_scalar_array(array_kvs.get(f"{arch}.attention.sliding_window_pattern"))
+    if swa_arr and len(swa_arr) == n_layer:
+        # False/0 entries are full-attention layers; True/1 entries are sliding-window (capped at sliding_window)
+        full_layers = sum(1 for x in swa_arr if not x)
+        n_layer_kv = max(1, full_layers)
+    elif interval > 1 and n_layer > 0:
         n_layer_kv = n_layer // interval
     else:
         n_layer_kv = n_layer

@@ -107,7 +107,17 @@ def ensure_native_toolchain(
 ) -> ToolchainPaths:
     cache_root = os.path.expanduser(cache_dir)
     fp = hardware_fingerprint(hw)
-    build_dir = os.path.join(cache_root, f"llama-native-{fp}")
+    # Reuse existing ~/llama-bc250-native build if present and --rebuild is not set
+    existing_native = os.path.expanduser("~/llama-bc250-native")
+    if (
+        not rebuild
+        and os.path.isfile(os.path.join(existing_native, "bin", "llama-bench"))
+        and os.path.isfile(os.path.join(existing_native, "bin", "llama-server"))
+        and os.path.isfile(os.path.join(existing_native, "bin", "llama-perplexity"))
+    ):
+        build_dir = existing_native
+    else:
+        build_dir = os.path.join(cache_root, f"llama-native-{fp}")
     bin_dir = os.path.join(build_dir, "bin")
 
     expected = {
