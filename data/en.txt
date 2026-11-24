@@ -1,0 +1,11 @@
+Modern computer architecture balances arithmetic throughput against memory bandwidth across a deep cache hierarchy.
+When a transformer language model generates text one token at a time, each layer reads billions of weight parameters from global memory while performing only a single matrix-vector multiplication per projection.
+Consequently, decode latency is governed primarily by effective memory bandwidth and the average number of bits stored per weight, rather than peak floating-point operations per second.
+In contrast, prompt processing evaluates dozens or hundreds of tokens simultaneously, converting matrix-vector products into dense matrix-matrix multiplications that reuse loaded weights across the batch dimension and shift the bottleneck toward compute units and shared memory.
+
+Quantization reduces both memory footprint and per-token bandwidth consumption by mapping continuous floating-point weights onto discrete grids with per-block scaling factors.
+Uniform block formats such as Q4_0 group thirty-two weights with a single half-precision scale, enabling simple bitwise unpacking and fused multiply-accumulate instructions on hardware without dedicated integer dot-product instructions.
+Key-value cache quantization similarly shrinks attention memory linearly with context length, though sensitivity varies across architectures and attention mechanisms, making empirical perplexity and task verification essential before committing a configuration.
+
+Vocabulary pruning removes unused multilingual subword entries from the embedding and output projection matrices while preserving byte-level fallback tokens, special control tokens, and downward BPE merge closure so tokenization over target languages remains lossless.
+Mixture-of-Experts architectures decouple total parameter capacity from active per-token compute by routing each token to a small subset of feed-forward experts; calibrating expert saliency over representative prompts allows pruning low-impact experts when memory is constrained.

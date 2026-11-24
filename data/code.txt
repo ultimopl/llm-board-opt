@@ -1,0 +1,57 @@
+from __future__ import annotations
+import heapq
+from typing import Dict, List, Tuple
+
+
+def dijkstra(graph: Dict[int, List[Tuple[int, int]]], start: int) -> Dict[int, int]:
+    dist: Dict[int, int] = {start: 0}
+    pq: List[Tuple[int, int]] = [(0, start)]
+    while pq:
+        d, u = heapq.heappop(pq)
+        if d > dist.get(u, 10**18):
+            continue
+        for v, w in graph.get(u, []):
+            nd = d + w
+            if nd < dist.get(v, 10**18):
+                dist[v] = nd
+                heapq.heappush(pq, (nd, v))
+    return dist
+
+
+def merge_intervals(intervals: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
+    if not intervals:
+        return []
+    ordered = sorted(intervals)
+    merged = [ordered[0]]
+    for s, e in ordered[1:]:
+        ps, pe = merged[-1]
+        if s <= pe:
+            merged[-1] = (ps, max(pe, e))
+        else:
+            merged.append((s, e))
+    return merged
+
+
+/* C reference: ring buffer and binary search */
+#include <stddef.h>
+#include <stdint.h>
+
+int binary_search_i32(const int32_t *arr, size_t n, int32_t target) {
+    size_t lo = 0, hi = n;
+    while (lo < hi) {
+        size_t mid = lo + ((hi - lo) >> 1);
+        if (arr[mid] == target) return (int)mid;
+        if (arr[mid] < target) lo = mid + 1;
+        else hi = mid;
+    }
+    return -1;
+}
+
+uint32_t fnv1a_32(const uint8_t *data, size_t len) {
+    uint32_t h = 2166136261u;
+    for (size_t i = 0; i < len; ++i) {
+        h ^= data[i];
+        h *= 16777619u;
+    }
+    return h;
+}

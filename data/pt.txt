@@ -1,0 +1,11 @@
+A arquitetura de computadores modernos equilibra a capacidade aritmética com a largura de banda de memória através de uma hierarquia profunda de caches.
+Quando um modelo de linguagem baseado em transformers gera texto um token por vez, cada camada lê bilhões de parâmetros da memória principal enquanto executa apenas uma multiplicação matriz-vetor por projeção.
+Por isso, a latência de geração depende principalmente da largura de banda efetiva e da quantidade média de bits por peso, e não apenas do pico teórico de operações de ponto flutuante por segundo.
+Já o processamento inicial do prompt avalia dezenas ou centenas de tokens simultaneamente, transformando o cálculo em multiplicação matriz-matriz e deslocando o gargalo para as unidades de cálculo e a memória compartilhada.
+
+A quantização reduz tanto o consumo de memória quanto o tráfego por token ao representar pesos contínuos em blocos discretos com fatores de escala.
+Formatos uniformes como Q4_0 agrupam trinta e dois pesos com uma única escala em meia precisão, permitindo desempacotamento simples e eficiente em placas sem instruções dedicadas de produto escalar inteiro.
+A quantização do cache KV também reduz drasticamente o uso de memória em contextos longos, mas a sensibilidade varia entre arquiteturas, tornando indispensável validar perplexidade e tarefas reais antes de aprovar qualquer configuração.
+
+A poda de vocabulário remove tokens de idiomas não utilizados das matrizes de embedding e saída, preservando todos os bytes de fallback, tokens especiais de controle e o fechamento de fusões BPE para que a acentuação em português e o código continuem perfeitamente preservados sem perdas.
+Em modelos Mixture-of-Experts, apenas uma fração dos especialistas é ativada por token, permitindo ajustar o número de especialistas ativos ou remover especialistas pouco utilizados quando a memória disponível é limitada.
