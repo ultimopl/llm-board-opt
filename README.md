@@ -110,6 +110,25 @@ hold two models). The server unit is named `board-opt-<slug>` unless `--unit-nam
 QAT). It receives the current GGUF and an eval function and returns a new GGUF path, which then goes through the gate.
 The default is a no-op.
 
+## Measured results and typical runtime (AMD BC-250, RADV `GFX1013`, 16 GiB UMA)
+
+| Command / Run | Wall time | Result |
+|---|---:|---|
+| `board-opt probe` / `budget` / `inspect` | ~1 s | Hardware profile, VRAM/KV solver, layer/MoE/vocab breakdown |
+| `board-opt bench-quants` (21 GGML formats) | ~15–20 s | Empirical `tg GW/s`, `GB/s`, `pp GW/s`, conv speed, `RMSE`/`CosSim` |
+| First-time native `llama.cpp` build (cached) | ~4–5 min | `-march=znver2`, LTO, static build + native helpers |
+| **Gemma 4 26B-A4B** (10.77 GiB, full `run`) | ~45 min | `tg`: **83.17 → 87.60 t/s (+5.3%)**, `pp`: **544 → 566 t/s**, VRAM **-284 MiB**, eval **6/10 → 7/10** |
+| **Inkling-2-Mini** (11.1 GiB, EN+PT+Code) | ~30–40 min | `tg`: **32.96 → 43.78 t/s (+32.8% bench / +68.8% live)**, vocab **200k → 113k (-43%)**, eval **10/12 → 12/12** |
+
+## Roadmap (v0.2+)
+
+- Validate on CUDA GPUs, discrete Vulkan GPUs (RDNA2/3/4, Intel Arc), Apple Silicon (Metal + non-`systemd` launcher), ROCm/HIP, and ARM SBCs.
+- Interactive `--interactive` cut selector in `board-opt run` on top of `board-opt inspect`.
+- Generalize `reap_trace.cpp` across all MoE architectures (dynamic layer/expert counts).
+- Per-role mixed-precision search (e.g. `q6_K` vs `q4_K` vs `q4_0`) and imatrix-backed `IQ2`/`IQ3` benchmarking.
+- SentencePiece / Gemma 4 vocab pruning and streaming row-by-row embedding slicing.
+- Phase 2 `RecoveryHook`: targeted Evolution Strategies (ES) / LoRA recovery on quantized/pruned models.
+
 ## Tests
 
 ```bash
