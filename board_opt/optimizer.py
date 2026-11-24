@@ -7,6 +7,7 @@ import subprocess
 from dataclasses import asdict, dataclass, field
 from typing import Any, Callable
 
+from board_opt.budget import compute_scratch_mb, kv_cache_bytes
 from board_opt.builder import ToolchainPaths
 from board_opt.eval_runner import run_full_eval
 from board_opt.gate import evaluate_candidate
@@ -34,17 +35,17 @@ def plan_requant_targets(tensors: list[TensorInfo], hw: HardwareProfile) -> dict
     targets: dict[str, int] = {}
 
     for t in tensors:
-        # Never touch 1D norms, biases, or small vectors
+        # Never touch 1D norms, biases, router gates, or SSM state tensors
         if len(t.dims) < 2 or t.dims[0] % 32 != 0:
             continue
-        if "norm" in t.name or "bias" in t.name:
+        if any(skip in t.name for skip in ("norm", "bias", "ffn_gate_inp", "ssm_", "exp_probs")):
             continue
         # Non-native FP4/NVFP4 on boards without fp4 support
         if t.ttype in (39, 40) and not hw.fp4:
             targets[t.name] = target_id
             continue
-        # Oversized F32 matrices (e.g. loop controllers)
-        if t.ttype == 0:
+        # Oversized F32 loop controllers only (not arbitrary F32 gates)
+        if t.ttype == 0 and "loop" in t.name and "ctrl" in t.name:
             targets[t.name] = target_id
             continue
         # High-bit attention / output projections on bandwidth-bound boards
@@ -78,12 +79,20 @@ def _select_reap_experts(scores_json: str, target_count: int) -> dict[int, list[
     with open(scores_json, encoding="utf-8") as f:
         data = json.load(f)
     keep: dict[int, list[int]] = {}
+    if isinstance(data.get("reap"), list):
+        for layer_idx, scores in enumerate(data["reap"]):
+            if not scores or max(scores) == 0:
+                continue
+            ranked = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
+            keep[layer_idx] = sorted(ranked[:target_count])
+        return keep
     layers = data.get("layers", data)
-    for k, scores in layers.items():
-        if not str(k).isdigit():
-            continue
-        ranked = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
-        keep[int(k)] = sorted(ranked[:target_count])
+    if isinstance(layers, dict):
+        for k, scores in layers.items():
+            if not str(k).isdigit() or not scores:
+                continue
+            ranked = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
+            keep[int(k)] = sorted(ranked[:target_count])
     return keep
 
 
@@ -117,7 +126,10 @@ def optimize_model(
         if step_eval_fn is not None:
             return step_eval_fn(path)
         assert tc is not None
-        est_mb = (os.path.getsize(path) // (1024 * 1024)) + 512
+        p_info = inspect_gguf(path)
+        weights_mb = (os.path.getsize(path) + 1024 * 1024 - 1) // (1024 * 1024)
+        kv_mb = (kv_cache_bytes(p_info, runtime.context, runtime.ctk, runtime.ctv) + 1024 * 1024 - 1) // (1024 * 1024)
+        est_mb = weights_mb + kv_mb + compute_scratch_mb(runtime.ubatch)
         return run_full_eval(
             tc=tc,
             gguf_path=path,
@@ -149,21 +161,32 @@ def optimize_model(
         else:
             intermediates.append(cand_path)
 
-    # Step 1: Metadata fix (top_k = 40) + hardware-native tensor re-quantization
+    # Step 1a: Safe metadata fix (top_k = 40) + non-native FP4/loop_ctrl conversion
     kv_fix: dict[str, tuple[int, Any]] = {}
     if info.top_k == 0 and info.vocab_size > 50000:
         kv_fix["general.sampling.top_k"] = (4, 40)
-    req_targets = plan_requant_targets(info.tensors, hw)
-    if kv_fix or req_targets:
-        cand = os.path.join(work_dir, "step1_requant.gguf")
-        edit_gguf(
-            current_gguf,
-            cand,
-            kv_overrides=kv_fix,
-            tensor_requant=req_targets,
-            ggml_conv_bin=tc.ggml_conv if tc else None,
-        )
-        _try_step("metadata_and_requant", cand)
+    all_targets = plan_requant_targets(info.tensors, hw)
+    t_types = {t.name: t.ttype for t in info.tensors}
+    conv_bin = tc.ggml_conv if tc else None
+    # Filter out conversions requiring ggml_conv if binary is absent
+    def _can_convert(src_t: int, dst_t: int) -> bool:
+        if (src_t, dst_t) in ((0, 1), (0, 2), (8, 2)):
+            return True
+        return bool(conv_bin and os.path.isfile(conv_bin))
+
+    non_native = {k: v for k, v in all_targets.items() if t_types.get(k) in (0, 39, 40) and _can_convert(t_types[k], v)}
+    high_bit = {k: v for k, v in all_targets.items() if t_types.get(k) in (8, 13, 14) and _can_convert(t_types[k], v)}
+
+    if kv_fix or non_native:
+        cand = os.path.join(work_dir, "step1a_native_fix.gguf")
+        edit_gguf(current_gguf, cand, kv_overrides=kv_fix, tensor_requant=non_native, ggml_conv_bin=conv_bin)
+        _try_step("metadata_and_non_native", cand)
+
+    # Step 1b: Aggressive high-bit attention/output re-quantization
+    if high_bit:
+        cand = os.path.join(work_dir, "step1b_requant_attn.gguf")
+        edit_gguf(current_gguf, cand, tensor_requant=high_bit, ggml_conv_bin=conv_bin)
+        _try_step("requant_attn_and_output", cand)
 
     # Step 2: Language/domain vocabulary pruning
     if langs_list:
@@ -187,14 +210,17 @@ def optimize_model(
         scores_p = os.path.join(work_dir, "reap_scores.json")
         subprocess.check_call([tc.reap_trace, current_gguf, calib_file, scores_p])
         keep_map = _select_reap_experts(scores_p, reap_target)
-        cand = os.path.join(work_dir, f"step4_reap_e{reap_target}.gguf")
-        edit_gguf(
-            current_gguf,
-            cand,
-            kv_overrides={f"{cur_info.arch}.expert_count": (4, reap_target)},
-            expert_keep=keep_map,
-        )
-        _try_step(f"moe_reap_prune_{reap_target}", cand)
+        if keep_map:
+            cand = os.path.join(work_dir, f"step4_reap_e{reap_target}.gguf")
+            edit_gguf(
+                current_gguf,
+                cand,
+                kv_overrides={f"{cur_info.arch}.expert_count": (4, reap_target)},
+                expert_keep=keep_map,
+            )
+            _try_step(f"moe_reap_prune_{reap_target}", cand)
+        else:
+            steps.append({"step": f"moe_reap_prune_{reap_target}", "skipped": True, "reason": "empty REAP scores"})
 
     # Step 4: Phase 2 recovery hook (NoOp in Phase 1)
     hook = recovery_hook or NoOpRecovery()

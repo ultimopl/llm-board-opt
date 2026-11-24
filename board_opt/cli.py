@@ -27,6 +27,15 @@ def _slugify(path: str) -> str:
     return re.sub(r"[^a-zA-Z0-9._-]+", "-", stem).strip("-").lower() or "model"
 
 
+def validate_budget_or_abort(plan, requested_ctx: int) -> None:
+    if not plan.candidates and plan.recommended_max_context <= 0:
+        raise RuntimeError(
+            f"Model weights ({plan.weights_mb} MiB) exceeds usable VRAM ({plan.usable_vram_mb} MiB) "
+            f"for requested context {requested_ctx}; cannot launch GPU jobs without OOM. "
+            "Use a smaller quant or lower --context."
+        )
+
+
 def _cmd_probe(args: argparse.Namespace) -> int:
     hw = probe_hardware(vram_reserve_mb=args.vram_reserve_mb, backend_override=args.backend)
     print(json.dumps(hw.to_dict(), indent=2))
@@ -76,6 +85,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
     info = inspect_gguf(model_path)
     plan = solve_budget(info, hw, requested_ctx=args.context, target_vram_mb=args.target_vram_mb)
     store.save("plan", plan.to_dict())
+    validate_budget_or_abort(plan, args.context)
 
     # Stage 2: Native board compilation
     tc = ensure_native_toolchain(hw, llama_src=args.llama_src, rebuild=args.rebuild)
@@ -105,11 +115,11 @@ def _cmd_run(args: argparse.Namespace) -> int:
             calib_file=calib_file,
             domains=domains,
             langs=langs,
-            ctk=first_c.ctk if first_c else "q8_0",
+            ctk=first_c.ctk if first_c else "q4_0",
             ctv=first_c.ctv if first_c else "q4_0",
             ubatch=first_c.ubatch if first_c else 128,
-            context=first_c.context if first_c else max(2048, plan.recommended_max_context),
-            top_k=info.top_k or 40,
+            context=first_c.context if first_c else plan.recommended_max_context,
+            top_k=info.top_k if info.top_k is not None else 40,
             vram_mb=first_c.estimated_vram_mb if first_c else plan.weights_mb,
             eval_file=args.eval_file,
             quick=False,

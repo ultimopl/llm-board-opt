@@ -173,24 +173,26 @@ def prune_vocab_gguf(
         and (m.split(" ", 1)[0] + m.split(" ", 1)[1]) in kept_tok_set
     ]
 
-    # Pad embedding rows to multiple of 64 for clean GPU alignment
+    # Pad embedding rows AND tokenizer metadata to multiple of 64 for clean GPU alignment
     padded_vocab = align_up(new_vocab, 64)
     pad_count = padded_vocab - new_vocab
+    padded_tokens = new_tokens + [f"<|pad_extra_{pi}|>" for pi in range(pad_count)]
 
     new_kvs: list[tuple[str, int, Any]] = []
     for k, vt, val in kvs:
         if k == "tokenizer.ggml.tokens":
-            new_kvs.append((k, 9, (8, new_tokens, new_vocab)))
+            new_kvs.append((k, 9, (8, padded_tokens, padded_vocab)))
         elif k == "tokenizer.ggml.merges":
             new_kvs.append((k, 9, (8, new_merges, len(new_merges))))
         elif k == "tokenizer.ggml.token_type" and token_types is not None:
-            ntt = struct.pack(f"<{new_vocab}i", *(token_types[i] for i in kept_ids))
-            new_kvs.append((k, 9, (5, ntt, new_vocab)))
+            pad_types = [5] * pad_count  # 5 = UNUSED
+            ntt = struct.pack(f"<{padded_vocab}i", *(token_types[i] for i in kept_ids), *pad_types)
+            new_kvs.append((k, 9, (5, ntt, padded_vocab)))
         elif k == "tokenizer.ggml.scores" and vt == 9:
             etype, raw_sc, cnt = val
             sc = struct.unpack(f"<{cnt}f", raw_sc)
-            nsc = struct.pack(f"<{new_vocab}f", *(sc[i] for i in kept_ids))
-            new_kvs.append((k, 9, (6, nsc, new_vocab)))
+            nsc = struct.pack(f"<{padded_vocab}f", *(sc[i] for i in kept_ids), *([0.0] * pad_count))
+            new_kvs.append((k, 9, (6, nsc, padded_vocab)))
         elif k.startswith("tokenizer.ggml.") and k.endswith("_token_id") and isinstance(val, int) and val in old_to_new:
             new_kvs.append((k, vt, old_to_new[val]))
         elif k.endswith(".vocab_size") and isinstance(val, int):
@@ -252,6 +254,8 @@ def prune_vocab_gguf(
                 remaining = t["src_nbytes"]
                 while remaining > 0:
                     chunk = fin.read(min(remaining, 16 * 1024 * 1024))
+                    if not chunk:
+                        raise EOFError(f"Truncated GGUF while reading tensor {t['name']}")
                     fout.write(chunk)
                     remaining -= len(chunk)
             else:

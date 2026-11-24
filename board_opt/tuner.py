@@ -59,11 +59,16 @@ def tune_runtime(
         env_vars["GGML_VK_MAX_NODES_PER_SUBMIT"] = "1024"
 
     if not plan.candidates:
+        if plan.recommended_max_context <= 0:
+            raise RuntimeError(
+                f"Model weights ({plan.weights_mb} MiB) exceed usable VRAM ({plan.usable_vram_mb} MiB); "
+                "cannot fit even with q4_0/q4_0 KV cache."
+            )
         return TunedRuntimeConfig(
-            ctk="q8_0",
+            ctk="q4_0",
             ctv="q4_0",
             ubatch=128,
-            context=max(2048, plan.recommended_max_context),
+            context=plan.recommended_max_context,
             flash_attn=True,
             cache_ram=0,
             top_k=top_k,
@@ -93,21 +98,29 @@ def tune_runtime(
             env_vars=env_vars,
         )
 
+    # Establish apples-to-apples quick baseline on candidates[0] so quick=True subset
+    # eval_total matches every candidate (prevents false rejections against full baseline)
+    quick_base = _eval(plan.candidates[0], True)
     best_cand = plan.candidates[0]
-    best_metrics = baseline
+    best_metrics = quick_base
+    accepted_cands: list[tuple[BudgetCandidate, EvalMetrics]] = [(best_cand, quick_base)]
     history: list[dict[str, Any]] = []
 
-    for cand in plan.candidates:
+    for cand in plan.candidates[1:]:
         m = _eval(cand, True)
-        dec = evaluate_candidate(best_metrics, m, gate_cfg, vram_constrained=plan.vram_constrained)
+        # Compare against fixed quick_base (prevents cumulative PPL drift), then require beating best_metrics tg/vram
+        dec_base = evaluate_candidate(quick_base, m, gate_cfg, vram_constrained=plan.vram_constrained)
+        dec_best = evaluate_candidate(best_metrics, m, gate_cfg, vram_constrained=plan.vram_constrained)
+        accepted = dec_base.accepted and dec_best.accepted
         history.append({
             "candidate": cand.to_dict(),
             "metrics": m.to_dict(),
-            "decision": dec.to_dict(),
+            "decision": (dec_best if dec_base.accepted else dec_base).to_dict(),
         })
-        if dec.accepted:
+        if accepted:
             best_cand = cand
             best_metrics = m
+            accepted_cands.append((cand, m))
 
     # Test Vulkan submit batching on winner when running live
     if runner_fn is None and tc is not None and hw.backend == "vulkan":
@@ -115,13 +128,21 @@ def tune_runtime(
         _, tg_1024 = run_llama_bench(tc, info.path, ctk=best_cand.ctk, ctv=best_cand.ctv, ubatch=best_cand.ubatch, env_vars={"GGML_VK_MAX_NODES_PER_SUBMIT": "1024"})
         env_vars["GGML_VK_MAX_NODES_PER_SUBMIT"] = "1024" if tg_1024 >= tg_256 else "256"
 
-    # Full domain verification on the winning candidate
-    final_metrics = _eval(best_cand, False)
-    final_dec = evaluate_candidate(baseline, final_metrics, gate_cfg, vram_constrained=plan.vram_constrained)
-    if not final_dec.accepted and best_cand != plan.candidates[0]:
-        # Fall back to first safe candidate if full eval caught a regression
-        best_cand = plan.candidates[0]
-        final_metrics = baseline
+    # Full domain verification walking backwards through accepted candidates
+    final_metrics = baseline
+    chosen_cand = plan.candidates[0]
+    for cand, _ in reversed(accepted_cands):
+        if cand == plan.candidates[0]:
+            chosen_cand = cand
+            final_metrics = baseline
+            break
+        fm = _eval(cand, False)
+        fdec = evaluate_candidate(baseline, fm, gate_cfg, vram_constrained=plan.vram_constrained)
+        if fdec.accepted:
+            chosen_cand = cand
+            final_metrics = fm
+            break
+    best_cand = chosen_cand
 
     return TunedRuntimeConfig(
         ctk=best_cand.ctk,

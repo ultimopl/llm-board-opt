@@ -123,6 +123,13 @@ BUILTIN_TASKS: list[dict[str, Any]] = [
             "assert contar_vogais('Python') == 1\n"
         ),
     },
+    {
+        "id": "pt_logic",
+        "domain": "pt",
+        "prompt": "Em português com acentuação correta: João é mais alto que Maria, e Pedro é mais baixo que Maria. Quem é o mais alto? Responda em uma frase curta e coloque apenas o nome em \\boxed{...}.",
+        "grader": "boxed_str",
+        "expected": "joão",
+    },
 ]
 
 
@@ -146,9 +153,10 @@ def build_calibration_file(
     if not parts:
         parts.append(open(os.path.join(DATA_DIR, "en.txt"), encoding="utf-8").read())
 
-    # Repeat slices cleanly so llama-perplexity has >= 16 chunks of 512 tokens
+    # Ensure >= 36 KB (~18+ chunks of 512 tokens) for stable llama-perplexity
     base = "\n\n".join(parts)
-    text = (base + "\n\n") * 4
+    reps = max(4, (36000 // max(1, len(base))) + 1)
+    text = (base + "\n\n") * reps
     os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(text)
@@ -183,10 +191,10 @@ def load_eval_tasks(
 
 
 def _extract_code_block(text: str, lang: str) -> str:
-    m = re.findall(rf"```{lang}\s*(.*?)```", text, flags=re.DOTALL | re.IGNORECASE)
+    m = re.findall(rf"```{lang}\b\s*(.*?)```", text, flags=re.DOTALL | re.IGNORECASE)
     if m:
         return m[-1].strip()
-    m2 = re.findall(r"```\s*(.*?)```", text, flags=re.DOTALL)
+    m2 = re.findall(r"```[a-zA-Z0-9_+-]*\s*(.*?)```", text, flags=re.DOTALL)
     if m2:
         return m2[-1].strip()
     return text.strip()
@@ -376,15 +384,19 @@ def run_full_eval(
     details: dict[str, Any] = {}
     try:
         # Wait for /health
+        healthy = False
         for _ in range(120):
             if proc.poll() is not None:
                 raise RuntimeError("llama-server exited prematurely during eval")
             try:
                 with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=2) as r:
                     if r.status == 200:
+                        healthy = True
                         break
             except Exception:
                 time.sleep(0.5)
+        if not healthy:
+            raise RuntimeError(f"llama-server failed /health check on port {port} after 60s")
 
         max_toks = 1024 if quick else 2048
         for t in tasks:
@@ -400,8 +412,15 @@ def run_full_eval(
             )
             with urllib.request.urlopen(req, timeout=180) as resp:
                 body = json.loads(resp.read().decode("utf-8"))
-            content = body["choices"][0]["message"].get("content", "") or ""
-            if len(content.strip()) == 0 or (len(content) > 200 and len(set(content[-200:])) < 6):
+            choice = body["choices"][0]
+            msg = choice["message"]
+            content = (msg.get("content") or "")
+            reasoning = (msg.get("reasoning_content") or "")
+            combined_out = content or reasoning
+            # Detect UTF-8 corruption (\ufffd), empty output, or multi-char repeating tail loops
+            tail = combined_out[-240:]
+            has_repeat_loop = len(tail) >= 180 and tail[-60:] == tail[-120:-60]
+            if "\ufffd" in combined_out or len(combined_out.strip()) == 0 or has_repeat_loop:
                 degenerate = True
             ok, note = grade_response(t, content)
             if ok:

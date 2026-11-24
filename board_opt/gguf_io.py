@@ -44,8 +44,8 @@ GGML_TYPES: dict[int, tuple[int, int]] = {
     34: (256, 54),  # TQ1_0
     35: (256, 66),  # TQ2_0
     39: (32, 17),   # MXFP4
-    40: (16, 9),    # NVFP4
-    41: (32, 6),    # Q1_0
+    40: (64, 36),   # NVFP4
+    41: (128, 18),  # Q1_0
     42: (64, 18),   # Q2_0
 }
 
@@ -250,7 +250,7 @@ def convert_tensor_bytes(
             fin.write(raw)
         try:
             subprocess.check_call(
-                [ggml_conv_bin, str(src_type), str(dst_type), str(nrows), str(dims[0]), fin_p, fout_p]
+                [ggml_conv_bin, str(src_type), str(dst_type), str(dims[0]), str(nrows), fin_p, fout_p]
             )
             with open(fout_p, "rb") as f:
                 return f.read()
@@ -299,12 +299,14 @@ def edit_gguf(
             if len(parts) >= 3 and parts[0] == "blk" and parts[1].isdigit():
                 layer_idx = int(parts[1])
                 if layer_idx in expert_keep:
-                    if name.endswith("_exps.weight") and len(dims) == 3:
+                    if ("_exps." in name) and len(dims) in (2, 3):
                         keep_idx = expert_keep[layer_idx]
-                        dims[2] = len(keep_idx)
-                    elif name.endswith("ffn_gate_inp.weight") and len(dims) == 2:
+                        dims[-1] = len(keep_idx)
+                    elif (name.endswith("ffn_gate_inp.weight") and len(dims) == 2) or (
+                        (name.endswith("ffn_gate_inp.bias") or name.endswith("exp_probs_b.bias")) and len(dims) == 1
+                    ):
                         keep_idx = expert_keep[layer_idx]
-                        dims[1] = len(keep_idx)
+                        dims[-1] = len(keep_idx)
         dst_type = tensor_requant.get(name, ttype)
         nb = tensor_nbytes(dims, dst_type)
         out_tensors.append({

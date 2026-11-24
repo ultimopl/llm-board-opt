@@ -19,16 +19,25 @@ def compute_usable_vram_mb(total_mb: int, reserve_mb: int | None = None) -> int:
 def parse_vulkaninfo(text: str) -> dict[str, Any]:
     gpu_name = "unknown"
     uma = False
+    cur_name = None
+    cur_uma = False
+    found_discrete = False
     for line in text.splitlines():
         s = line.strip()
         if s.startswith("deviceName"):
             m = re.search(r"=\s*(.+)$", s)
             if m:
-                candidate = m.group(1).strip()
-                if "llvmpipe" not in candidate.lower() or gpu_name == "unknown":
-                    gpu_name = candidate
-        elif s.startswith("deviceType"):
-            if "INTEGRATED_GPU" in s:
+                cur_name = m.group(1).strip()
+                cur_uma = False
+                if gpu_name == "unknown" or ("llvmpipe" in gpu_name.lower() and "llvmpipe" not in cur_name.lower()):
+                    gpu_name = cur_name
+        elif s.startswith("deviceType") and cur_name is not None:
+            if "DISCRETE_GPU" in s and "llvmpipe" not in cur_name.lower():
+                gpu_name = cur_name
+                uma = False
+                found_discrete = True
+            elif "INTEGRATED_GPU" in s and not found_discrete:
+                gpu_name = cur_name
                 uma = True
     if "BC-250" in gpu_name or "GFX1013" in gpu_name.upper():
         uma = True

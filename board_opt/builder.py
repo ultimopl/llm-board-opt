@@ -79,7 +79,7 @@ def _build_native_helper(cpp_path: str, out_bin: str, src_dir: str, build_dir: s
     inc_ggml = os.path.join(src_dir, "ggml", "include")
     inc_llama = os.path.join(src_dir, "include")
     libs: list[str] = []
-    for candidate in ("libllama.a", "libggml.a", "libggml-cpu.a", "libggml-vulkan.a", "libggml-base.a"):
+    for candidate in ("libllama.a", "libggml.a", "libggml-cpu.a", "libggml-vulkan.a", "libggml-hip.a", "libggml-cuda.a", "libggml-base.a"):
         if candidate == "libllama.a" and not link_llama:
             continue
         for root, _, files in os.walk(build_dir):
@@ -88,7 +88,7 @@ def _build_native_helper(cpp_path: str, out_bin: str, src_dir: str, build_dir: s
                 break
     if not libs:
         return None
-    cmd = ["g++", "-O3", "-std=c++17", f"-I{inc_ggml}", f"-I{inc_llama}", cpp_path, "-o", out_bin]
+    cmd = ["g++", "-O3", "-flto", "-fopenmp", "-std=c++17", f"-I{inc_ggml}", f"-I{inc_llama}", cpp_path, "-o", out_bin]
     cmd.extend(["-Wl,--start-group", *libs, "-Wl,--end-group", "-lpthread", "-ldl", "-lm"])
     if shutil.which("vulkaninfo"):
         cmd.append("-lvulkan")
@@ -127,7 +127,7 @@ def ensure_native_toolchain(
             "-j", str(max(1, hw.cpu_cores)),
         ])
     else:
-        src_dir = _resolve_llama_src(llama_src, cache_root) if llama_src else os.path.expanduser("~/src/llama-mainline")
+        src_dir = _resolve_llama_src(llama_src, cache_root)
 
     pkg_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     native_dir = os.path.join(pkg_root, "native")

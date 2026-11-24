@@ -16,13 +16,29 @@ GPU_PROCS = ("llama-server", "llama-bench", "llama-perplexity", "llama-cli")
 
 
 def check_active_gpu_procs(lines: list[str]) -> None:
-    hits = [ln.strip() for ln in lines if ln.strip() and any(p in ln for p in GPU_PROCS)]
+    own_pids = {str(os.getpid()), str(os.getppid())}
+    hits: list[str] = []
+    for ln in lines:
+        s = ln.strip()
+        if not s:
+            continue
+        pid = s.split(None, 1)[0]
+        if pid in own_pids:
+            continue
+        if any(p in s for p in GPU_PROCS):
+            hits.append(s)
     if hits:
         raise RuntimeError(
             "Active GPU process detected (strictly one GPU job at a time): "
             + "; ".join(hits)
             + ". Stop it before running board-opt."
         )
+
+
+def extract_smoke_reply(body: dict[str, Any]) -> str:
+    msg = body["choices"][0]["message"]
+    text = msg.get("content") or msg.get("reasoning_content") or ""
+    return str(text).strip()[:80]
 
 
 def ensure_single_gpu_job(managed_unit: str | None = None) -> None:
@@ -80,8 +96,13 @@ def launch_and_verify_server(serve_script: str, unit_name: str, port: int) -> di
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
+    subprocess.run(
+        ["systemctl", "--user", "reset-failed", f"{unit_name}.service"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
     subprocess.check_call([
-        "systemd-run", "--user", f"--unit={unit_name}", os.path.abspath(serve_script),
+        "systemd-run", "--user", "--collect", f"--unit={unit_name}", os.path.abspath(serve_script),
     ])
 
     healthy = False
@@ -109,5 +130,5 @@ def launch_and_verify_server(serve_script: str, unit_name: str, port: int) -> di
     )
     with urllib.request.urlopen(req, timeout=60) as resp:
         body = json.loads(resp.read().decode("utf-8"))
-    reply = body["choices"][0]["message"].get("content", "")
-    return {"unit": unit_name, "port": port, "healthy": True, "smoke_reply": reply.strip()[:80]}
+    reply = extract_smoke_reply(body)
+    return {"unit": unit_name, "port": port, "healthy": True, "smoke_reply": reply}
