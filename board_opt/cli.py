@@ -16,6 +16,7 @@ from board_opt.deploy import (
 from board_opt.eval_runner import build_calibration_file, run_full_eval
 from board_opt.gate import StageStore
 from board_opt.gguf_io import inspect_gguf
+from board_opt.log import log_info, set_verbosity
 from board_opt.models import EvalMetrics, GateConfig, HardwareProfile
 from board_opt.optimizer import optimize_model
 from board_opt.probe import probe_hardware
@@ -65,6 +66,7 @@ def _cmd_budget(args: argparse.Namespace) -> int:
 
 
 def _cmd_run(args: argparse.Namespace) -> int:
+    set_verbosity(0 if args.quiet else (2 if args.verbose else 1))
     model_path = os.path.abspath(os.path.expanduser(args.model))
     slug = _slugify(model_path)
     work_dir = os.path.abspath(os.path.join(os.path.expanduser(args.work_dir), slug))
@@ -74,20 +76,24 @@ def _cmd_run(args: argparse.Namespace) -> int:
     ensure_single_gpu_job(managed_unit=unit_name)
 
     # Stage 0: Hardware probe
+    log_info(f"[Stage 0] Probing hardware (work_dir={work_dir})...")
     hw_data = store.load("hardware")
     if hw_data and not args.no_resume:
         hw = HardwareProfile.from_dict(hw_data)
     else:
         hw = probe_hardware(vram_reserve_mb=args.vram_reserve_mb, backend_override=args.backend)
         store.save("hardware", hw.to_dict())
+    log_info(f"[Stage 0] {hw.gpu_name} | backend={hw.backend} | usable_vram={hw.usable_vram_mb} MiB | march={hw.cpu_march}")
 
     # Stage 1: GGUF inspect & VRAM/KV budget
     info = inspect_gguf(model_path)
     plan = solve_budget(info, hw, requested_ctx=args.context, target_vram_mb=args.target_vram_mb)
     store.save("plan", plan.to_dict())
+    log_info(f"[Stage 1] {info.arch} ({plan.weights_mb} MiB, {info.n_layer_kv} full KV layers, {len(plan.candidates)} budget-valid candidates)")
     validate_budget_or_abort(plan, args.context)
 
     # Stage 2: Native board compilation
+    log_info("[Stage 2] Ensuring board-native llama.cpp toolchain...")
     tc = ensure_native_toolchain(hw, llama_src=args.llama_src, rebuild=args.rebuild)
 
     langs = [x.strip() for x in args.langs.split(",") if x.strip()] if args.langs else []
@@ -107,7 +113,9 @@ def _cmd_run(args: argparse.Namespace) -> int:
     base_data = store.load("baseline")
     if base_data and not args.no_resume:
         baseline = EvalMetrics.from_dict(base_data)
+        log_info(f"[Stage 3] Resumed baseline: pp={baseline.pp_tps:.1f} tg={baseline.tg_tps:.1f} ppl={baseline.ppl:.3f} eval={baseline.eval_passed}/{baseline.eval_total}")
     else:
+        log_info("[Stage 3] Running baseline bench + perplexity + domain evals...")
         first_c = plan.candidates[0] if plan.candidates else None
         baseline = run_full_eval(
             tc=tc,
@@ -125,11 +133,13 @@ def _cmd_run(args: argparse.Namespace) -> int:
             quick=False,
         )
         store.save("baseline", baseline.to_dict())
+        log_info(f"[Stage 3] Baseline: pp={baseline.pp_tps:.1f} tg={baseline.tg_tps:.1f} ppl={baseline.ppl:.3f} eval={baseline.eval_passed}/{baseline.eval_total}")
 
     # Stage 4: Runtime & KV permutation sweep
     tune_data = store.load("tune")
     if tune_data and not args.no_resume:
         runtime = TunedRuntimeConfig.from_dict(tune_data)
+        log_info(f"[Stage 4] Resumed tuned runtime: {runtime.ctk}/{runtime.ctv} ub={runtime.ubatch}")
     else:
         runtime = tune_runtime(
             info=info,
@@ -144,8 +154,10 @@ def _cmd_run(args: argparse.Namespace) -> int:
             eval_file=args.eval_file,
         )
         store.save("tune", runtime.to_dict())
+        log_info(f"[Stage 4] Selected runtime: {runtime.ctk}/{runtime.ctv} ub={runtime.ubatch} top_k={runtime.top_k}")
 
     # Stage 5: Automatic GGUF optimization
+    log_info("[Stage 5] Running greedy GGUF optimization...")
     opt_report = optimize_model(
         info=info,
         hw=hw,
@@ -164,6 +176,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
     store.save("optimize", opt_report.to_dict())
 
     # Stage 6: Packaging & optional server launch
+    log_info("[Stage 6] Packaging serve.sh" + (" and launching systemd server..." if args.serve else "..."))
     serve_script = generate_serve_script(
         opt_report.final_gguf, runtime, tc, args.host, args.port, os.path.join(work_dir, "serve.sh")
     )
@@ -238,6 +251,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp_run.add_argument("--host", default="0.0.0.0")
     sp_run.add_argument("--port", type=int, default=8080)
     sp_run.add_argument("--unit-name", default=None)
+    sp_run.add_argument("-v", "--verbose", action="store_true", help="Print per-candidate and per-task progress to stderr")
+    sp_run.add_argument("-q", "--quiet", action="store_true", help="Suppress progress logs (JSON stdout only)")
     sp_run.set_defaults(func=_cmd_run)
 
     sp_serve = sub.add_parser("serve", help="Launch previously generated serve.sh via systemd-run")

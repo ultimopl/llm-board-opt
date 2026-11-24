@@ -11,6 +11,7 @@ import urllib.request
 from typing import Any
 
 from board_opt.builder import ToolchainPaths
+from board_opt.log import log_verbose
 from board_opt.models import EvalMetrics
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
@@ -425,6 +426,7 @@ def run_full_eval(
             ok, note = grade_response(t, content)
             if ok:
                 passed += 1
+            log_verbose(f"task {t['id']} ({t['domain']}): {'PASS' if ok else 'FAIL'} ({note})")
             details[t["id"]] = {"passed": ok, "note": note}
     finally:
         proc.terminate()

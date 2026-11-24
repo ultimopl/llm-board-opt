@@ -6,6 +6,7 @@ from typing import Any, Callable
 from board_opt.builder import ToolchainPaths
 from board_opt.eval_runner import run_full_eval, run_llama_bench
 from board_opt.gate import evaluate_candidate
+from board_opt.log import log_info, log_verbose
 from board_opt.models import (
     BudgetCandidate,
     BudgetPlan,
@@ -100,22 +101,33 @@ def tune_runtime(
 
     # Establish apples-to-apples quick baseline on candidates[0] so quick=True subset
     # eval_total matches every candidate (prevents false rejections against full baseline)
+    log_info(f"[Stage 4] Screening {len(plan.candidates)} KV/runtime candidates...")
     quick_base = _eval(plan.candidates[0], True)
+    log_verbose(
+        f"  [1/{len(plan.candidates)}] {plan.candidates[0].ctk}/{plan.candidates[0].ctv} ub={plan.candidates[0].ubatch}: "
+        f"pp={quick_base.pp_tps:.1f} tg={quick_base.tg_tps:.1f} ppl={quick_base.ppl:.3f} eval={quick_base.eval_passed}/{quick_base.eval_total} (quick baseline)"
+    )
     best_cand = plan.candidates[0]
     best_metrics = quick_base
     accepted_cands: list[tuple[BudgetCandidate, EvalMetrics]] = [(best_cand, quick_base)]
     history: list[dict[str, Any]] = []
 
-    for cand in plan.candidates[1:]:
+    for idx, cand in enumerate(plan.candidates[1:], start=2):
         m = _eval(cand, True)
         # Compare against fixed quick_base (prevents cumulative PPL drift), then require beating best_metrics tg/vram
         dec_base = evaluate_candidate(quick_base, m, gate_cfg, vram_constrained=plan.vram_constrained)
         dec_best = evaluate_candidate(best_metrics, m, gate_cfg, vram_constrained=plan.vram_constrained)
         accepted = dec_base.accepted and dec_best.accepted
+        shown_dec = dec_best if dec_base.accepted else dec_base
+        log_verbose(
+            f"  [{idx}/{len(plan.candidates)}] {cand.ctk}/{cand.ctv} ub={cand.ubatch}: "
+            f"pp={m.pp_tps:.1f} tg={m.tg_tps:.1f} ppl={m.ppl:.3f} eval={m.eval_passed}/{m.eval_total} -> "
+            f"{'KEEP' if accepted else 'DROP'} ({shown_dec.reason})"
+        )
         history.append({
             "candidate": cand.to_dict(),
             "metrics": m.to_dict(),
-            "decision": (dec_best if dec_base.accepted else dec_base).to_dict(),
+            "decision": shown_dec.to_dict(),
         })
         if accepted:
             best_cand = cand

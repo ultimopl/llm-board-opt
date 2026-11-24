@@ -12,6 +12,7 @@ from board_opt.builder import ToolchainPaths
 from board_opt.eval_runner import run_full_eval
 from board_opt.gate import evaluate_candidate
 from board_opt.gguf_io import NAME_TO_TYPE, edit_gguf, inspect_gguf
+from board_opt.log import log_info, log_verbose
 from board_opt.models import EvalMetrics, GateConfig, GGUFInfo, HardwareProfile, TensorInfo
 from board_opt.recovery import NoOpRecovery, RecoveryHook
 from board_opt.tuner import TunedRuntimeConfig
@@ -149,9 +150,14 @@ def optimize_model(
 
     def _try_step(name: str, cand_path: str, force_accept_if_valid: bool = False) -> None:
         nonlocal current_gguf, current_metrics
+        log_info(f"[Stage 5] Evaluating {name}...")
         m = _eval_gguf(cand_path)
         dec = evaluate_candidate(current_metrics, m, gate_cfg, vram_constrained=vram_constrained)
         accepted = dec.accepted or (force_accept_if_valid and not m.degenerate and m.eval_passed >= current_metrics.eval_passed - gate_cfg.allow_eval_drop)
+        log_info(
+            f"[Stage 5] {name}: pp={m.pp_tps:.1f} tg={m.tg_tps:.1f} ppl={m.ppl:.3f} "
+            f"eval={m.eval_passed}/{m.eval_total} -> {'KEEP' if accepted else 'DROP'} ({dec.reason})"
+        )
         steps.append({"step": name, "candidate": cand_path, "metrics": m.to_dict(), "decision": dec.to_dict(), "accepted": accepted})
         if accepted:
             if current_gguf != info.path and current_gguf not in intermediates:
