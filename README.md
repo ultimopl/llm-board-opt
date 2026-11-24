@@ -110,15 +110,18 @@ hold two models). The server unit is named `board-opt-<slug>` unless `--unit-nam
 QAT). It receives the current GGUF and an eval function and returns a new GGUF path, which then goes through the gate.
 The default is a no-op.
 
-## Measured results and typical runtime (AMD BC-250, RADV `GFX1013`, 16 GiB UMA)
+## Measured gains (AMD BC-250, RADV `GFX1013`, 16 GiB UMA)
 
-| Command / Run | Wall time | Result |
-|---|---:|---|
-| `board-opt probe` / `budget` / `inspect` | ~1 s | Hardware profile, VRAM/KV solver, layer/MoE/vocab breakdown |
-| `board-opt bench-quants` (21 GGML formats) | ~15–20 s | Empirical `tg GW/s`, `GB/s`, `pp GW/s`, conv speed, `RMSE`/`CosSim` |
-| First-time native `llama.cpp` build (cached) | ~4–5 min | `-march=znver2`, LTO, static build + native helpers |
-| **Gemma 4 26B-A4B** (10.77 GiB, full `run`) | ~45 min | `tg`: **83.17 → 87.60 t/s (+5.3%)**, `pp`: **544 → 566 t/s**, VRAM **-284 MiB**, eval **6/10 → 7/10** |
-| **Inkling-2-Mini** (11.1 GiB, EN+PT+Code) | ~30–40 min | `tg`: **32.96 → 43.78 t/s (+32.8% bench / +68.8% live)**, vocab **200k → 113k (-43%)**, eval **10/12 → 12/12** |
+| Model | Baseline `tg` | Optimized `tg` | `tg` Gain | Baseline `pp` | Optimized `pp` | `pp` Gain | Eval | Wall time |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| **Inkling-2-Mini** (11.1 GiB, `llama-bench`) | 32.96 tok/s | **43.78 tok/s** | **+32.8%** | 278.67 tok/s | **331.93 tok/s** | **+19.1%** | 10/12 → **12/12** | ~30–40 min |
+| **Inkling-2-Mini** (live server, 12-task avg) | 22.66 tok/s | **38.24 tok/s** | **+68.8%** | 100.70 tok/s | **141.30 tok/s** | **+40.3%** | 10/12 → **12/12** | — |
+| **Gemma 4 26B-A4B** (10.77 GiB, full `run`) | 83.17 tok/s | **87.60 tok/s** | **+5.3%** | 544.25 tok/s | **566.00 tok/s** | **+4.0%** | 6/10 → **7/10** | ~45 min |
+
+Other command runtimes on BC-250:
+- `board-opt probe` / `budget` / `inspect`: **~1 s** (no GPU)
+- `board-opt bench-quants` (21 GGML formats): **~15–20 s**
+- First-time native `llama.cpp` build (cached afterward): **~4–5 min**
 
 ## Roadmap (v0.2+)
 
