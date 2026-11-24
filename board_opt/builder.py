@@ -51,7 +51,7 @@ def cmake_args_for_hardware(hw: HardwareProfile, src_dir: str, build_dir: str) -
     elif hw.backend == "rocm":
         args.append("-DGGML_HIP=ON")
     elif hw.backend == "cuda":
-        args.append("-DGGML_CUDA=ON")
+        args.extend(["-DGGML_CUDA=ON", "-DCMAKE_CUDA_ARCHITECTURES=native"])
     return args
 
 
@@ -91,8 +91,12 @@ def _build_native_helper(cpp_path: str, out_bin: str, src_dir: str, build_dir: s
         return None
     cmd = ["g++", "-O3", "-flto", "-fopenmp", "-std=c++17", f"-I{inc_ggml}", f"-I{inc_llama}", cpp_path, "-o", out_bin]
     cmd.extend(["-Wl,--start-group", *libs, "-Wl,--end-group", "-lpthread", "-ldl", "-lm"])
-    if shutil.which("vulkaninfo"):
+    if any("libggml-vulkan.a" in lb for lb in libs):
         cmd.append("-lvulkan")
+    if any("libggml-cuda.a" in lb for lb in libs):
+        cmd.extend(["-L/usr/local/cuda/lib64", "-L/usr/local/cuda/lib64/stubs", "-lcudart", "-lcublas", "-lcuda"])
+    if any("libggml-hip.a" in lb for lb in libs):
+        cmd.extend(["-L/opt/rocm/lib", "-lamdhip64", "-lhipblas", "-lrocblas"])
     try:
         subprocess.check_call(cmd, stderr=subprocess.DEVNULL)
         return out_bin
