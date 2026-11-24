@@ -122,9 +122,9 @@ int main(int argc, char ** argv) {
     std::vector<float> W_f32(size_t(M) * size_t(K));
     for (auto & v : W_f32) v = dist(rng);
 
-    std::vector<float> X_tg(size_t(K));
+    std::vector<float> X_tg(static_cast<size_t>(K));
     for (auto & v : X_tg) v = dist(rng) * 10.0f;
-    std::vector<float> X_pp(size_t(K) * size_t(N_pp));
+    std::vector<float> X_pp(static_cast<size_t>(K) * static_cast<size_t>(N_pp));
     for (auto & v : X_pp) v = dist(rng) * 10.0f;
 
     // Exact CPU FP32 reference for N=1 matvec
