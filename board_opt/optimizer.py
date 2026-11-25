@@ -42,10 +42,10 @@ def plan_requant_targets(
     targets: dict[str, int] = {}
 
     for t in tensors:
-        # Never touch 1D norms, biases, router gates, or SSM state tensors
+        # Never touch 1D norms, biases, router gates, mHC routers, or SSM state tensors
         if len(t.dims) < 2 or t.dims[0] % 32 != 0:
             continue
-        if any(skip in t.name for skip in ("norm", "bias", "ffn_gate_inp", "ssm_", "exp_probs")):
+        if any(skip in t.name for skip in ("norm", "bias", "ffn_gate_inp", "ssm_", "exp_probs", "hc_")):
             continue
 
         # Empirical mode: use actual board measurements (speed, bandwidth, RMSE/CosSim)
